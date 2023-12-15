@@ -1,6 +1,6 @@
 
 use std::cmp::max;
-
+use std::time::Instant;
 use chess::{Board, MoveGen, Piece, Color, ALL_PIECES, ChessMove, Square, BoardStatus, EMPTY, BitBoard};
 
 
@@ -8,8 +8,11 @@ type ScoreType = i32;
 type SearchResult = (ScoreType, ChessMove);
 type MoveOrdering = Vec<fn(&Board) -> Option<BitBoard>>;
 
-const PIECE_VALUES: [i32; 6] = [80, 300, 305, 450, 900, -100000];
-const QS_DELTA: i32 = 200;
+const INFINITY: i32 = 1000000;
+const PIECE_VALUES: [i32; 6] = [80, 300, 305, 450, 900, INFINITY];
+const PIN_VALUE: i32 = 10;
+const MOBILITY_VALUE: i32 = 1;
+const IN_CHECK_PENALTY: i32 = 30;
 
 fn no_ordering() -> MoveOrdering {
     return vec![|_board| Some(!EMPTY)];
@@ -40,54 +43,96 @@ fn evaluate(board: &Board) -> ScoreType{
     let mut score = 0;
     let mut i: usize = 0;
 
+    // Color dependent evaluation
+    let all_white =  board.color_combined(Color::White);
+    let all_black =  board.color_combined(Color::Black);
 
     for piece in ALL_PIECES {
         
-        let white = board.pieces(piece) & board.color_combined(Color::White);
-        let black = board.pieces(piece) & board.color_combined(Color::Black);
+        let white = board.pieces(piece) & all_white;
+        let black = board.pieces(piece) & all_black;
 
         score += PIECE_VALUES[i] * (white.popcnt() as i32 - black.popcnt() as i32);
 
         i += 1;
 
     }
-    if board.side_to_move() == Color::White {
-        return score
+
+    score += PIN_VALUE * (board.pinned() & all_black).popcnt() as i32;
+    score -= PIN_VALUE * (board.pinned() & all_white).popcnt() as i32;
+
+    
+    if board.side_to_move() == Color::Black {
+        score = -score;
     }
 
-    return -score
+    // evaluation independent of color
+    if *board.checkers() == EMPTY{
+        score += MOBILITY_VALUE * MoveGen::movegen_perft_test(board, 1) as i32;
+        score -= MOBILITY_VALUE * MoveGen::movegen_perft_test(&board.null_move().expect("Valid Position"), 1) as i32;
+    }
+    else {
+        score -= IN_CHECK_PENALTY;
+    }
+
+    return score
     
 }
 
 pub fn root_search(board: &Board, max_depth: u8) -> SearchResult{
     let mut iterable = MoveGen::new_legal(board);
 
-    let mut alpha = -100000;
-    let beta = -alpha;
     let mut best_move = ChessMove::new(Square::A1, Square::A1, None);
-    
-    for get_targets in mvv_ordering() {
-        
-        let targets = get_targets(board).unwrap_or(EMPTY);
 
+    let mut move_list: Vec<ChessMove> = vec![];
+    for get_targets in mvv_ordering() {
+            
+        let targets = get_targets(board).unwrap_or(EMPTY);
         iterable.set_iterator_mask(targets);
     
         for chess_move in &mut iterable{
-
-            let mut result = Board::default();
-
-            board.make_move(chess_move, &mut result);
-            
-            let value = -search(&result, max_depth -1, -beta, -alpha);
-
-            if value > alpha {
-                best_move = chess_move;
-                alpha = value;
-            }
-            
+            move_list.push(chess_move);
         }
-    }
+    }     
+    
+    let mut alpha = -INFINITY;
 
+    for depth in 1..(max_depth + 1) {
+        let now = Instant::now();
+
+        alpha = -INFINITY;
+        let beta = -alpha;
+
+        if depth > 1{
+            let result = board.make_move_new(best_move);
+            
+            alpha = -search(&result, depth -1, -beta, -alpha);
+            if alpha >= 100000 {
+                return (alpha, best_move)
+            }
+        }
+        
+        for chess_move in &mut move_list {
+
+            if *chess_move == best_move { continue; }
+
+            let result = board.make_move_new(*chess_move);
+            
+            let value = -search(&result, depth -1, -beta, -alpha);
+            if value > alpha {
+                best_move = *chess_move;
+                alpha = value;
+
+                if value >= 100000 {
+                    return (alpha, best_move)
+                }
+            }
+        }
+
+        let elapsed = now.elapsed();
+        println!("d{depth} | {alpha} | {best_move} | {:.2?}", elapsed)
+    }
+    
     return (alpha, best_move)
 }
 
@@ -98,28 +143,20 @@ fn search(board: &Board, depth: u8, mut alpha: ScoreType, beta: ScoreType) -> Sc
     }
     
     let mut iterable = MoveGen::new_legal(board);
-   
     let mut value = -100000;
 
     for get_targets in mvv_ordering() {
         
         let targets = get_targets(board).unwrap_or(EMPTY);
-
         iterable.set_iterator_mask(targets);
 
         for chess_move in &mut iterable{
 
-            let mut result = Board::default();
-
-            board.make_move(chess_move, &mut result);
-            
+            let result = board.make_move_new(chess_move);
+           
             value = max(value, -search(&result, depth -1, -beta, -alpha));
-            
             alpha = max(alpha, value);
-
-            if alpha >= beta {
-                break;
-            }
+            if alpha >= beta { break; }
             
         }
     }

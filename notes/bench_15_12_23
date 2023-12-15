@@ -1,0 +1,26 @@
+r4rk1/ppp2ppp/2nbbn2/1B4Q1/8/P3p3/1PPPNPPP/R1B1K1NR w KQ - 0 11
+d1 | 1217 | b5c6 | 97.98µs
+d2 | 900 | g5e3 | 200.10µs
+d3 | 1225 | g5e3 | 814.81µs
+d4 | 896 | b5c6 | 8.62ms
+d5 | 1215 | g5e3 | 46.53ms
+d6 | 899 | d2e3 | 328.08ms
+d7 | 1142 | g5e3 | 3.34s
+Elapsed: 3.72s
+Depth: 7
+Result of search: 1142
+Best move: g5e3
+
+starting pos
+d1 | 10 | e2e3 | 168.07µs
+d2 | 0 | e2e3 | 208.66µs
+d3 | 23 | e2e3 | 1.99ms
+d4 | -7 | e2e3 | 28.99ms
+d5 | 101 | e2e3 | 55.85ms
+d6 | -80 | e2e3 | 832.39ms
+d7 | 107 | e2e4 | 3.45s
+d8 | -84 | e2e3 | 58.23s
+Elapsed: 62.60s
+Depth: 8
+Result of search: -84
+Best move: e2e3
