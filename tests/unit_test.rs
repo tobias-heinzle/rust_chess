@@ -15,7 +15,7 @@ mod tests {
         
         let result = rust_chess::quiescence_search(&board, max_depth, alpha, beta);
 
-        assert_eq!(result, -100000);
+        assert_eq!(result, -rust_chess::INFINITY);
     }
 
    

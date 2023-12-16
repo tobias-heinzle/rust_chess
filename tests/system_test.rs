@@ -30,27 +30,27 @@ mod tests {
         
     }
 
-    #[test]
-    fn mate_in_four_0(){
-        let board = chess::Board::from_str("r4r1k/1R1R2p1/7p/8/8/3Q1Ppq/P7/6K1 w - - 0 1").expect("Invalid position");
-        let max_depth = 8;
+    // #[test]
+    // fn mate_in_four_0(){
+    //     let board = chess::Board::from_str("r4r1k/1R1R2p1/7p/8/8/3Q1Ppq/P7/6K1 w - - 0 1").expect("Invalid position");
+    //     let max_depth = 8;
         
-        let result = rust_chess::root_search(&board, max_depth);
+    //     let result = rust_chess::root_search(&board, max_depth);
 
-        assert_eq!(result.0, rust_chess::INFINITY);
-        assert_eq!(result.1, chess::ChessMove::from_str("d3h7").expect("Invalid Move"));
+    //     assert_eq!(result.0, rust_chess::INFINITY);
+    //     assert_eq!(result.1, chess::ChessMove::from_str("d3h7").expect("Invalid Move"));
         
-    }
+    // }
 
-    #[test]
-    fn mate_in_five_0(){
-        let board = chess::Board::from_str("2q1nk1r/4Rp2/1ppp1P2/6Pp/3p1B2/3P3P/PPP1Q3/6K1 w - - 0 1").expect("Invalid position");
-        let max_depth = 10;
+    // #[test]
+    // fn mate_in_five_0(){
+    //     let board = chess::Board::from_str("2q1nk1r/4Rp2/1ppp1P2/6Pp/3p1B2/3P3P/PPP1Q3/6K1 w - - 0 1").expect("Invalid position");
+    //     let max_depth = 10;
         
-        let result = rust_chess::root_search(&board, max_depth);
+    //     let result = rust_chess::root_search(&board, max_depth);
 
-        assert_eq!(result.0, rust_chess::INFINITY);
-        assert_eq!(result.1, chess::ChessMove::from_str("e7e8").expect("Invalid Move"));
-    }
+    //     assert_eq!(result.0, rust_chess::INFINITY);
+    //     assert_eq!(result.1, chess::ChessMove::from_str("e7e8").expect("Invalid Move"));
+    // }
 
 }

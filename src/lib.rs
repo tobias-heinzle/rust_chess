@@ -68,22 +68,22 @@ fn evaluate(board: &Board) -> ScoreType{
 
     }
 
-    // score += PIN_VALUE * (board.pinned() & all_black).popcnt() as i32;
-    // score -= PIN_VALUE * (board.pinned() & all_white).popcnt() as i32;
+    score += PIN_VALUE * (board.pinned() & all_black).popcnt() as i32;
+    score -= PIN_VALUE * (board.pinned() & all_white).popcnt() as i32;
 
     
-    // if board.side_to_move() == Color::Black {
-    //     score = -score;
-    // }
+    if board.side_to_move() == Color::Black {
+        score = -score;
+    }
 
-    // // evaluation independent of color
-    // if *board.checkers() == EMPTY{
-    //     score += MOBILITY_VALUE * MoveGen::movegen_perft_test(board, 1) as i32;
-    //     score -= MOBILITY_VALUE * MoveGen::movegen_perft_test(&board.null_move().expect("Valid Position"), 1) as i32;
-    // }
-    // else {
-    //     score -= IN_CHECK_PENALTY;
-    // }
+    // evaluation independent of color
+    if *board.checkers() == EMPTY{
+        score += MOBILITY_VALUE * MoveGen::movegen_perft_test(board, 1) as i32;
+        score -= MOBILITY_VALUE * MoveGen::movegen_perft_test(&board.null_move().expect("Valid Position"), 1) as i32;
+    }
+    else {
+        score -= IN_CHECK_PENALTY;
+    }
 
     return score
     

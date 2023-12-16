@@ -13,5 +13,13 @@ fn starting_pos_d5_benchmark(c: &mut Criterion) {
         || root_search(black_box(&board), black_box(5))));
 }
 
-criterion_group!(benches, starting_pos_d5_benchmark);
+fn custom_pos_d5_benchmark(c: &mut Criterion) {
+    let board = chess::Board::from_str("5r1k/4Qpq1/4p3/1p1p2P1/2p2P2/1p2P3/3P4/BK6 b - - 0 1").expect("Valid Board");
+
+    c.bench_function("root_search_custom_pos_d5",
+     |b| b.iter(
+        || root_search(black_box(&board), black_box(5))));
+}
+
+criterion_group!(benches, starting_pos_d5_benchmark, custom_pos_d5_benchmark);
 criterion_main!(benches);
