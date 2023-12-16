@@ -1,7 +1,6 @@
 use std::str::FromStr;
 use std::io;
 use std::env;
-use chess::MoveGen;
 use rust_chess;
 use chess;
 use std::time::Instant;

@@ -3,7 +3,6 @@ use std::cmp::max;
 use std::time::Instant;
 use chess::{Board, MoveGen, Piece, Color, ALL_PIECES, ChessMove, Square, BoardStatus, EMPTY, BitBoard};
 
-
 type ScoreType = i32;
 type SearchResult = (ScoreType, ChessMove);
 type MoveOrdering = Vec<fn(&Board) -> Option<BitBoard>>;
@@ -20,33 +19,44 @@ fn no_ordering() -> MoveOrdering {
 
 fn mvv_ordering() -> MoveOrdering {
    return vec![
-        |board| get_attacked(board, Piece::Queen),
-        |board| get_attacked(board, Piece::Rook),
-        |board| get_attacked(board, Piece::Bishop),
-        |board| get_attacked(board, Piece::Knight),
-        |board| get_attacked(board, Piece::Pawn),
+        |board| get_pieces(board, Piece::Queen),
+        |board| get_pieces(board, Piece::Rook),
+        |board| get_pieces(board, Piece::Bishop),
+        |board| get_pieces(board, Piece::Knight),
+        |board| get_pieces(board, Piece::Pawn),
         |board| get_en_passant(board),
         |_board| Some(!EMPTY),
         ];
 }    
 fn quiescence_ordering() -> MoveOrdering { 
     return vec![
-        |board| get_attacked(board, Piece::Queen),
-        |board| get_attacked(board, Piece::Rook),
-        |board| get_attacked(board, Piece::Bishop),
-        |board| get_attacked(board, Piece::Knight),
+        |board| get_pieces(board, Piece::Queen),
+        |board| get_pieces(board, Piece::Rook),
+        |board| get_pieces(board, Piece::Bishop),
+        |board| get_pieces(board, Piece::Knight),
         ];
+}
+
+fn lva_key(board: &Board, chessmove: &ChessMove) -> i32 {
+    match board.piece_on(chessmove.get_source()).unwrap_or(Piece::King) {
+        Piece::Pawn => 0,
+        Piece::Knight => 1,
+        Piece::Bishop => 2,
+        Piece::Rook => 3,
+        Piece::Queen => 4,
+        Piece::King => 5,
+    }
 }
     
 
 fn evaluate(board: &Board) -> ScoreType{
     let mut score = 0;
-    let mut i: usize = 0;
-
+    
     // Color dependent evaluation
     let all_white =  board.color_combined(Color::White);
     let all_black =  board.color_combined(Color::Black);
-
+    
+    let mut i: usize = 0;
     for piece in ALL_PIECES {
         
         let white = board.pieces(piece) & all_white;
@@ -107,7 +117,7 @@ pub fn root_search(board: &Board, max_depth: u8) -> SearchResult{
             let result = board.make_move_new(best_move);
             
             alpha = -search(&result, depth -1, -beta, -alpha);
-            if alpha >= 100000 {
+            if alpha >= INFINITY {
                 return (alpha, best_move)
             }
         }
@@ -123,7 +133,7 @@ pub fn root_search(board: &Board, max_depth: u8) -> SearchResult{
                 best_move = *chess_move;
                 alpha = value;
 
-                if value >= 100000 {
+                if value >= INFINITY {
                     return (alpha, best_move)
                 }
             }
@@ -141,12 +151,12 @@ fn search(board: &Board, depth: u8, mut alpha: ScoreType, beta: ScoreType) -> Sc
     if depth == 0 || board.status() != BoardStatus::Ongoing{
         return quiescence_search(board, depth, alpha, beta)
     }
-    
+
     let mut iterable = MoveGen::new_legal(board);
-    let mut value = -100000;
+
+    let mut value = -INFINITY;
 
     for get_targets in mvv_ordering() {
-        
         let targets = get_targets(board).unwrap_or(EMPTY);
         iterable.set_iterator_mask(targets);
 
@@ -170,7 +180,7 @@ pub fn quiescence_search(board: &Board, depth: u8, mut alpha: ScoreType, beta: S
     let board_status =  board.status();
 
     if board_status == BoardStatus::Checkmate{
-        return -100000;
+        return -INFINITY;
     }
     else if board_status == BoardStatus::Stalemate{ 
         return 0;
@@ -183,7 +193,7 @@ pub fn quiescence_search(board: &Board, depth: u8, mut alpha: ScoreType, beta: S
 }
 
 
-fn get_attacked(board: &Board, pieces: Piece) -> Option<BitBoard>{
+fn get_pieces(board: &Board, pieces: Piece) -> Option<BitBoard>{
     return Some(board.color_combined(!board.side_to_move()) & board.pieces(pieces));
 }
 
