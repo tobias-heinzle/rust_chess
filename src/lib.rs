@@ -7,7 +7,7 @@ type ScoreType = i32;
 type SearchResult = (ScoreType, ChessMove);
 type MoveOrdering = Vec<fn(&Board) -> Option<BitBoard>>;
 
-const INFINITY: i32 = 1000000;
+pub const INFINITY: i32 = 1000000;
 const PIECE_VALUES: [i32; 6] = [80, 300, 305, 450, 900, INFINITY];
 const PIN_VALUE: i32 = 10;
 const MOBILITY_VALUE: i32 = 1;
@@ -68,22 +68,22 @@ fn evaluate(board: &Board) -> ScoreType{
 
     }
 
-    score += PIN_VALUE * (board.pinned() & all_black).popcnt() as i32;
-    score -= PIN_VALUE * (board.pinned() & all_white).popcnt() as i32;
+    // score += PIN_VALUE * (board.pinned() & all_black).popcnt() as i32;
+    // score -= PIN_VALUE * (board.pinned() & all_white).popcnt() as i32;
 
     
-    if board.side_to_move() == Color::Black {
-        score = -score;
-    }
+    // if board.side_to_move() == Color::Black {
+    //     score = -score;
+    // }
 
-    // evaluation independent of color
-    if *board.checkers() == EMPTY{
-        score += MOBILITY_VALUE * MoveGen::movegen_perft_test(board, 1) as i32;
-        score -= MOBILITY_VALUE * MoveGen::movegen_perft_test(&board.null_move().expect("Valid Position"), 1) as i32;
-    }
-    else {
-        score -= IN_CHECK_PENALTY;
-    }
+    // // evaluation independent of color
+    // if *board.checkers() == EMPTY{
+    //     score += MOBILITY_VALUE * MoveGen::movegen_perft_test(board, 1) as i32;
+    //     score -= MOBILITY_VALUE * MoveGen::movegen_perft_test(&board.null_move().expect("Valid Position"), 1) as i32;
+    // }
+    // else {
+    //     score -= IN_CHECK_PENALTY;
+    // }
 
     return score
     
@@ -140,7 +140,7 @@ pub fn root_search(board: &Board, max_depth: u8) -> SearchResult{
         }
 
         let elapsed = now.elapsed();
-        println!("d{depth} | {alpha} | {best_move} | {:.2?}", elapsed)
+        //println!("d{depth} | {alpha} | {best_move} | {:.2?}", elapsed)
     }
     
     return (alpha, best_move)
