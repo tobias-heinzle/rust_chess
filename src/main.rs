@@ -8,19 +8,29 @@ use std::time::Instant;
 mod nn;
 
 fn main() {
-
+    
+    let mut board = chess::Board::default();
 
     let args: Vec<String> = env::args().collect();
+    let mut max_depth = 5;
+    let mut fen_string: String = "".to_string();
+
+    if args.len() > 1 {
+        if args[1] == "-d" {
+            max_depth = args[2].parse::<u8>().unwrap_or(0);
+            fen_string = args[3..].join(&" ");
+        }
+        else{
+            fen_string = args[1..].join(&" ");
+        }
     
-    let mut board = chess::Board::default();//::from_str("r4r1k/1R1R2p1/7p/8/8/3Q1Ppq/P7/6K1 w - - 0 1").expect("Invalid Position");
-    let max_depth = 6;
-
-
-    let fen_string = args[1..].join(&" ");
+        
+    }
+    
     if fen_string.len() > 0 {
         board = chess::Board::from_str(&fen_string).expect("Invalid Position");
     }
-
+    
     loop {
         let now = Instant::now();
         let result = rust_chess::root_search(&board, max_depth);

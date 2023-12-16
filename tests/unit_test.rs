@@ -13,7 +13,7 @@ mod tests {
         let alpha = 0;
         let beta = 100;
         
-        let result = rust_chess::quiescence_search(&board, max_depth, alpha, beta);
+        let result = rust_chess::quiescence_search(&board, alpha, beta);
 
         assert_eq!(result, -rust_chess::INFINITY);
     }
@@ -26,7 +26,7 @@ mod tests {
         let alpha = 0;
         let beta = 100;
         
-        let result = rust_chess::quiescence_search(&board, max_depth, alpha, beta);
+        let result = rust_chess::quiescence_search(&board,  alpha, beta);
 
         assert_eq!(result, 0);
     }
