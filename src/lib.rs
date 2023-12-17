@@ -57,21 +57,24 @@ pub fn root_search(board: &Board, max_depth: u8) -> SearchResult{
         let now = Instant::now();
 
         alpha = -INFINITY;
-        let beta = -alpha;
 
         if depth > 1{
-            let result = board.make_move_new(best_move);
-            alpha = -search(&result, depth -1, -beta, -alpha);
-            if alpha >= INFINITY {return (alpha, best_move) }
+            
+            alpha = -search(&board.make_move_new(best_move), depth -1, -INFINITY, -alpha);
+
+
+            if alpha >= INFINITY { return (alpha, best_move) }
+
         }
         
         for chess_move in &mut move_vec {
 
             if *chess_move == best_move { continue; }
 
-            let result = board.make_move_new(*chess_move);
             
-            let value = -search(&result, depth -1, -beta, -alpha);
+            let value = -search(&board.make_move_new(*chess_move), depth -1, -INFINITY, -alpha);
+
+
             if value > alpha {
                 best_move = *chess_move;
                 alpha = value;
@@ -95,55 +98,56 @@ fn search(board: &Board, depth: u8, mut alpha: ScoreType, beta: ScoreType) -> Sc
     }
 
     let mut iterable = MoveGen::new_legal(board);
-    let mut value = -INFINITY;
 
     for piece in MVV_ORDERING {
         iterable.set_iterator_mask( get_targets(&board, piece ));
 
         for chess_move in &mut iterable{
 
-            let result = board.make_move_new(chess_move);
+            let value = -search(&board.make_move_new(chess_move), depth -1, -beta, -alpha);
 
-            value = max(value, -search(&result, depth -1, -beta, -alpha));
+            
             alpha = max(alpha, value);
+            
+            
             if alpha >= beta { break; }
             
         }
     }
 
-    return value
+    return alpha
 }
 
 
 pub fn quiescence_search(board: &Board, mut alpha: ScoreType, beta: ScoreType) -> i32{
 
-    let board_status =  board.status();
-
-    if board_status == BoardStatus::Checkmate{ return -INFINITY; }
-    else if board_status == BoardStatus::Stalemate{ return 0; }
+    match board.status() {
+        BoardStatus::Checkmate => return -INFINITY,
+        BoardStatus::Stalemate => return 0,
+        _ => {}
+    }
     
-    let baseline =  evaluate(board);
 
-    if baseline >= beta { return beta };
-    if alpha < baseline { alpha = baseline };
+    alpha = max(evaluate(board), alpha);
+    if alpha >= beta { return beta };
 
 
     let mut iterable = MoveGen::new_legal(board);
 
-    let mut value = -INFINITY;
-
     for piece in QS_ORDERING {
-        let targets = get_targets(board, piece);
-        if targets == EMPTY {continue;}
 
-        iterable.set_iterator_mask(targets);
+        iterable.set_iterator_mask( get_targets(board, piece) );
+
 
         for chess_move in &mut iterable{
 
-            let result = board.make_move_new(chess_move);
            
-            value = max(value, -quiescence_search(&result, -beta, -alpha));
+            let value = -quiescence_search(&board.make_move_new(chess_move), -beta, -alpha);
+
+
             alpha = max(alpha, value);
+
+
             if alpha >= beta {return alpha;}
             
         }
