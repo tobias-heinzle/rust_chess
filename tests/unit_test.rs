@@ -9,7 +9,6 @@ mod tests {
     #[test]
     fn quiescence_checkmate(){
         let board = chess::Board::from_str("R6k/6rp/5B2/8/8/8/7P/7K b - - 0 3").expect("Invalid position");
-        let max_depth = 5;
         let alpha = 0;
         let beta = 100;
         
@@ -22,7 +21,6 @@ mod tests {
     #[test]
     fn quiescence_stalemate(){
         let board = chess::Board::from_str("7k/6Rp/7B/8/8/8/7P/7K b - - 0 1").expect("Invalid position");
-        let max_depth = 5;
         let alpha = 0;
         let beta = 100;
         

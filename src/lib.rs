@@ -22,16 +22,13 @@ fn evaluate(board: &Board) -> ScoreType{
     let all_player =  player_pieces(board);
     let all_opponent =  opponent_pieces(board);
     
-    let mut i: usize = 0;
-    for piece in ALL_PIECES {
+
+    for (i, piece) in ALL_PIECES.iter().enumerate() {
         
-        let player = board.pieces(piece) & all_player;
-        let opponent = board.pieces(piece) & all_opponent;
+        let player = board.pieces(*piece) & all_player;
+        let opponent = board.pieces(*piece) & all_opponent;
 
         score += PIECE_VALUES[i] * (player.popcnt() as i32 - opponent.popcnt() as i32);
-
-        i += 1;
-
     }
 
     score += PIN_VALUE * (board.pinned() & all_opponent).popcnt() as i32;
@@ -85,7 +82,7 @@ pub fn root_search(board: &Board, max_depth: u8) -> SearchResult{
             }
         }
         let elapsed = now.elapsed();
-        println!("d{depth} | {alpha} | {best_move} | {:.2?}", elapsed)
+        // println!("d{depth} | {alpha} | {best_move} | {:.2?}", elapsed)
     }
     
     return (alpha, best_move)
