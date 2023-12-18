@@ -1,12 +1,13 @@
+use std::time::Instant;
+use std::{thread, time, io, env};
 use std::sync::mpsc;
 use std::str::FromStr;
-use std::io;
-use std::env;
 use rust_chess;
 use chess;
-use std::time::Instant;
 
 mod nn;
+
+const STOP_SIGNAL: bool = true;
 
 fn main() {
     
@@ -37,6 +38,7 @@ fn main() {
         }
 
         fen_string = args[i + 1 ..].join(&" ");
+        break;
     }
     
     if fen_string.len() > 0 {
@@ -44,19 +46,32 @@ fn main() {
     }
     
     loop {
-        let (_, rx) = mpsc::channel();
+        let (stop_sender, stop_receiver) = mpsc::channel();
         let (tx, _) = mpsc::channel();
-        let engine = rust_chess::ChessEngine{board: board, receiver_channel: rx, sender_channel: tx};
+        let engine = rust_chess::ChessEngine{board: board, receiver_channel: stop_receiver, sender_channel: tx};
 
         let now = Instant::now();
-        let result = engine.root_search(max_depth);
-        let elapsed = now.elapsed();
+
+        let handle = thread::spawn(move || {
+            return engine.root_search(max_depth);
+        });
+
+        let search_duration = time::Duration::from_millis(1000);
+
+        thread::sleep(search_duration);
+
+        for _ in 0..100 {
+            let _ = stop_sender.send(STOP_SIGNAL);
+        }
+
+        let result = handle.join().expect("Valid Search Result");
     
+        let elapsed = now.elapsed();
+
         let score = result.0;
         let best_move = result.1;
     
         println!("Elapsed: {:.2?}", elapsed);
-        println!("Depth: {max_depth}");
         println!("Result of search: {score}");
         println!("Best move: {best_move}");
 

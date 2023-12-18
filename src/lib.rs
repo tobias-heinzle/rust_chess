@@ -51,7 +51,7 @@ impl ChessEngine {
                     best_move = *chess_move;
                     alpha = value;
                 }
-
+                if self.receiver_channel.try_recv().unwrap_or(false){return (alpha, best_move) }
             }
 
             self.sender_channel.send((alpha, best_move, depth)).unwrap_or_default();
@@ -61,7 +61,7 @@ impl ChessEngine {
     }
 
 
-    
+
     pub fn search(&self, board: &Board, depth: DepthType, mut alpha: ScoreType, beta: ScoreType) -> ScoreType{
 
         if depth <= 0 || board.status() != BoardStatus::Ongoing{
@@ -71,6 +71,8 @@ impl ChessEngine {
         let mut iterable = MoveGen::new_legal(board);
     
         for piece in MVV_ORDERING {
+            if self.receiver_channel.try_recv().unwrap_or(false){return alpha; }
+
             iterable.set_iterator_mask( get_targets(&board, piece ));
     
             for chess_move in &mut iterable{
@@ -130,7 +132,7 @@ impl ChessEngine {
 }
 
 
-
+#[inline]
 fn evaluate(board: &Board) -> ScoreType{
     let mut score = 0;
 
