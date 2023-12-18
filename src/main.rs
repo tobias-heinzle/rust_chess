@@ -49,7 +49,7 @@ fn main() {
         let engine = rust_chess::ChessEngine{board: board, receiver_channel: rx, sender_channel: tx};
 
         let now = Instant::now();
-        let result = engine.root_search(max_depth, time_limit);
+        let result = engine.root_search(max_depth);
         let elapsed = now.elapsed();
     
         let score = result.0;

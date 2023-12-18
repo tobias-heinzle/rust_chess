@@ -1,11 +1,12 @@
 
 use std::cmp::max;
 use std::sync::mpsc;
-use std::time::{Instant, Duration};
 use chess::{Board, MoveGen, Piece, ALL_PIECES, ChessMove, Square, BoardStatus, EMPTY, BitBoard};
 
 type ScoreType = i32;
+type DepthType = u8;
 type SearchResult = (ScoreType, ChessMove);
+type SearchInfo = (ScoreType, ChessMove, DepthType);
 
 pub const INFINITY: i32 = 1000000;
 const PIECE_VALUES: [i32; 6] = [80, 300, 305, 450, 900, INFINITY];
@@ -18,59 +19,50 @@ const QS_ORDERING: [Piece; 5] = [Piece::Queen, Piece::Rook, Piece::Bishop, Piece
 pub struct ChessEngine {
     pub board: Board,
     pub receiver_channel: mpsc::Receiver<bool>,
-    pub sender_channel: mpsc::Sender<SearchResult>,
+    pub sender_channel: mpsc::Sender<SearchInfo>,
 
 }
 
 impl ChessEngine {
 
-    pub fn root_search(&self, max_depth: u8, time_limit: u64) -> SearchResult{
+    pub fn root_search(&self, max_depth: DepthType) -> SearchResult{
     
 
         let mut best_move = ChessMove::new(Square::A1, Square::A1, None);
         let mut move_vec = get_legal_moves_vector(& self.board);
         let mut alpha = -INFINITY;
     
-        //let search_start = Instant::now();
         for depth in 1..(max_depth + 1) {
-            // let now = Instant::now();
     
             alpha = -INFINITY;
     
             if depth > 1{
-    
                 alpha = - self.search(& self.board.make_move_new(best_move), depth -1, -INFINITY, -alpha);
-    
-    
-                if alpha >= INFINITY { return (alpha, best_move) }
-    
             }
             
             for chess_move in &mut move_vec {
-                // if search_start.elapsed() > Duration::new(time_limit, 0) {
-                //     return (alpha, best_move);
-                // }
-    
                 if *chess_move == best_move { continue; }
-    
-                
+
+
                 let value = -self.search(& self.board.make_move_new(*chess_move), depth -1, -INFINITY, -alpha);
     
     
                 if value > alpha {
                     best_move = *chess_move;
                     alpha = value;
-    
                 }
+
             }
-            //let elapsed = now.elapsed();
-            //println!("d{depth} | {alpha} | {best_move} | {:.2?}", elapsed)
+
+            self.sender_channel.send((alpha, best_move, depth)).unwrap_or_default();
         }
         
         return (alpha, best_move)
     }
 
-    pub fn search(&self, board: &Board, depth: u8, mut alpha: ScoreType, beta: ScoreType) -> ScoreType{
+
+    
+    pub fn search(&self, board: &Board, depth: DepthType, mut alpha: ScoreType, beta: ScoreType) -> ScoreType{
 
         if depth <= 0 || board.status() != BoardStatus::Ongoing{
             return self.quiescence_search(board, alpha, beta)
@@ -83,7 +75,7 @@ impl ChessEngine {
     
             for chess_move in &mut iterable{
     
-                let value = - self.search(&board.make_move_new(chess_move), depth -1, -beta, -alpha);
+                let value = - self.search(&board.make_move_new(chess_move), depth - 1, -beta, -alpha);
     
                 
                 alpha = max(alpha, value);

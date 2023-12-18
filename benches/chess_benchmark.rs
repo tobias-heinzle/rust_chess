@@ -13,7 +13,7 @@ fn starting_pos_d5_benchmark(c: &mut Criterion) {
 
     c.bench_function("root_search_starting_pos_d5",
      |b| b.iter(
-        || engine.root_search(black_box(5), black_box(10))));
+        || engine.root_search(black_box(5))));
 }
 
 fn custom_pos_d5_benchmark(c: &mut Criterion) {
@@ -24,7 +24,7 @@ fn custom_pos_d5_benchmark(c: &mut Criterion) {
 
     c.bench_function("root_search_custom_pos_d5",
      |b| b.iter(
-        || engine.root_search(black_box(5), black_box(10))));
+        || engine.root_search(black_box(5))));
 }
 
 fn liberman_pos_d2_benchmark(c: &mut Criterion) {
@@ -35,7 +35,7 @@ fn liberman_pos_d2_benchmark(c: &mut Criterion) {
 
     c.bench_function("root_search_liberman_pos_d2",
      |b| b.iter(
-        || engine.root_search(black_box(2), black_box(10))));
+        || engine.root_search(black_box(2))));
 }
 
 criterion_group!(benches, starting_pos_d5_benchmark, custom_pos_d5_benchmark, liberman_pos_d2_benchmark);
