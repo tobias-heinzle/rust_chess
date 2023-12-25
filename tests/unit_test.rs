@@ -14,9 +14,9 @@ mod tests {
         let beta = 100;
         let (_, rx) = mpsc::channel();
         let (tx, _) = mpsc::channel();
-        let engine = rust_chess::ChessEngine{board: board, receiver_channel: rx, sender_channel: tx};
+        let context = rust_chess::SearchContext{board: board, receiver_channel: rx, sender_channel: tx};
         
-        let result = engine.quiescence_search(&board, alpha, beta);
+        let result = context.quiescence_search(&board, alpha, beta);
 
         assert_eq!(result, -rust_chess::INFINITY);
     }
@@ -30,9 +30,9 @@ mod tests {
 
         let (_, rx) = mpsc::channel();
         let (tx, _) = mpsc::channel();
-        let engine = rust_chess::ChessEngine{board: board, receiver_channel: rx, sender_channel: tx};
+        let context = rust_chess::SearchContext{board: board, receiver_channel: rx, sender_channel: tx};
         
-        let result = engine.quiescence_search(&board, alpha, beta);
+        let result = context.quiescence_search(&board, alpha, beta);
 
         assert_eq!(result, 0);
     }

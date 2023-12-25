@@ -16,9 +16,9 @@ mod tests {
         let max_depth = 6;
         let (_, rx) = mpsc::channel();
         let (tx, _) = mpsc::channel();
-        let engine = rust_chess::ChessEngine{board: board, receiver_channel: rx, sender_channel: tx};
+        let context = rust_chess::SearchContext{board: board, receiver_channel: rx, sender_channel: tx};
         
-        let result = engine.root_search( max_depth);
+        let result = context.root_search( max_depth);
 
         assert_eq!(result.0, rust_chess::INFINITY);
         assert_eq!(result.1, chess::ChessMove::from_str("f6a6").expect("Invalid Move"));
@@ -31,9 +31,9 @@ mod tests {
         let max_depth = 6;
         let (_x, rx) = mpsc::channel();
         let (tx, _) = mpsc::channel();
-        let engine = rust_chess::ChessEngine{board: board, receiver_channel: rx, sender_channel: tx};
+        let context = rust_chess::SearchContext{board: board, receiver_channel: rx, sender_channel: tx};
         
-        let result = engine.root_search( max_depth);
+        let result = context.root_search( max_depth);
         assert_eq!(result.0, rust_chess::INFINITY);
         assert_eq!(result.1, chess::ChessMove::from_str("c3e5").expect("Invalid Move"));
         
