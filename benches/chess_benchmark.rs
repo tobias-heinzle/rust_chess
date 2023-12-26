@@ -1,7 +1,6 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use std::sync::mpsc;
 use std::str::FromStr;
-use std::task::Context;
 use rust_chess;
 use chess;
 

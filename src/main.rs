@@ -12,9 +12,9 @@ const STOP_SIGNAL: bool = true;
 
 
 fn main() {
-    //text_ui_mode();
     uci_mode()
     
+    //text_ui_mode();
     
 }
 
@@ -34,7 +34,7 @@ fn start_output_thread() -> (Sender<String>, Sender<rust_chess::SearchInfo>, Sen
 }
 
 
-fn start_search_threads(n_workers: u8, board: chess::Board,  info_sender: Sender<SearchInfo>) -> Option<Vec<Sender<bool>>> {
+fn start_search_threads(n_workers: u8, board: chess::Board,  info_sender: Sender<SearchInfo>) ->Vec<Sender<bool>> {
     let mut stop_sender_vec:  Vec<Sender<bool>> = vec![];
     for _ in 0 .. n_workers {
         let (stop_sender, stop_receiver) = mpsc::channel();
@@ -44,15 +44,23 @@ fn start_search_threads(n_workers: u8, board: chess::Board,  info_sender: Sender
 
     }
 
-    return Some(stop_sender_vec);
+    return stop_sender_vec;
 }
 
-fn send_termination_signal(sender: Sender<bool>, n_signals: i32) {
-    for _ in 0 .. n_signals { let _ = sender.send(true); }
+fn send_termination_signal(sender_vec: &Vec<Sender<bool>>, n_signals: i32) {
+    for sender in sender_vec {
+        for _ in 0 .. n_signals { 
+            let _ = sender.send(STOP_SIGNAL); 
+        }
+    }
+}
+
+fn log(text: &str) {
+    println!("{text}");
 }
 
 fn uci_mode(){
-    let board = chess::Board::default();
+    let mut board = chess::Board::default();
 
     let (print_sender, 
         info_sender, 
@@ -60,40 +68,52 @@ fn uci_mode(){
         output_thread_handle) = start_output_thread();
     let mut stop_search_vec: Vec<Sender<bool>> = vec![];
     
-    let respond = |message: &str| {let _ = print_sender.send(message.to_string()); return None;};
+    let respond = |message: &str| {let _ = print_sender.send(message.to_string());};
 
     
 
     // let newgame = || board = chess::Board::default();
 
     // TODO: implement change_position
-    let change_position = || return None;
+    let change_position = |arguments: &[&str]| return ();
 
 
 
     loop {
-        let input = collect_user_input();
-        let command: Vec<&str> = input.split(" ").collect();
-        let result: Option<Vec<Sender<bool>>> = match command[0]{
-            "uci" => respond("uciok"),
-            "isready" => respond("readyok"),
-            //"ucinewgame" => newgame(),
-            "position" => change_position(),// change_position(command[1..]),
-            "go" => start_search_threads(2, board, info_sender.clone()),//start_search(command[1..]),
-            "stop" => {for sender in stop_search_vec {send_termination_signal(sender, 100)}; return ()},
-            "quit" => {for sender in stop_search_vec {send_termination_signal(sender, 100)}; break},
+        let input_line = collect_user_input();
+        let input: Vec<&str> = input_line.split(" ").collect();
+        let command = input[0];
+        let arguments = &input[1..];
 
-            _ => None,
+        if      command == "uci"        { respond("uciok"); }
+        else if command == "isready"    { respond("readyok"); }
+        else if command == "ucinewgame" { board = chess::Board::default(); }
+        else if command == "position"   { change_position(arguments); }
+        else if command == "go"         { stop_search_vec = start_search_threads(2, board, info_sender.clone()); }
+        else if command == "stop"       { send_termination_signal(&stop_search_vec, 100); }
+        else if command == "quit"       { send_termination_signal(&stop_search_vec, 100); break;}
+        else                            { log("bad input: {input}");}
 
-        };
+        // let result: Option<Vec<Sender<bool>>> = match command[0]{
+        //     "uci" => respond("uciok"),
+        //     "isready" => respond("readyok"),
+        //     //"ucinewgame" => newgame(),
+        //     "position" => change_position(),// change_position(command[1..]),
+        //     "go" => start_search_threads(2, board, info_sender.clone()),//start_search(command[1..]),
+        //     "stop" => {for sender in stop_search_vec {send_termination_signal(sender, 100);} continue;},
+        //     "quit" => {for sender in stop_search_vec {send_termination_signal(sender, 100)}; break},
 
-        if result.is_some() {
-            stop_search_vec = result.unwrap();
-        }
+        //     _ => None,
+
+        // };
+
+        // if result.is_some() {
+        //     stop_search_vec = result.unwrap();
+        // }
 
     }
 
-    let _ = stop_print_sender.send(true);
+    let _ = stop_print_sender.send(STOP_SIGNAL);
     let _ = output_thread_handle.join();
 
 }
@@ -126,23 +146,6 @@ fn printing_loop(info_receiver: Receiver<rust_chess::SearchInfo>, print_reveiver
     }
 
 }
-
-
-// fn process(input: String){
-//     let command: Vec<&str> = input.split(" ").collect();
-//     match command[0]{
-//         "uci" => respond("uciok"),
-//         "isready" => respond("readyok"),
-//         "ucinewgame" => newgame(),
-//         "position" => change_position(command[1..]),
-//         "go" => start_search(command[1..]),
-//         "stop" => stop_search(),
-//         "quit" => {stop_search(); quit()},
-
-//         _ => {log("bad cmd: {command}")}
-
-//     }
-// }
 
 
 fn text_ui_mode() {
