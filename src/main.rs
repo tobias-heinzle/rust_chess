@@ -59,6 +59,13 @@ fn log(text: &str) {
     println!("{text}");
 }
 
+fn change_position(arguments: &[&str]) -> chess::Board{
+    let new_board = chess::Board::from_str("df");
+
+
+    return new_board.unwrap_or(chess::Board::default()); 
+}
+
 fn uci_mode(){
     let mut board = chess::Board::default();
 
@@ -75,7 +82,7 @@ fn uci_mode(){
     // let newgame = || board = chess::Board::default();
 
     // TODO: implement change_position
-    let change_position = |arguments: &[&str]| return ();
+    //let change_position = |arguments: &[&str]| return ();
 
 
 
@@ -88,28 +95,11 @@ fn uci_mode(){
         if      command == "uci"        { respond("uciok"); }
         else if command == "isready"    { respond("readyok"); }
         else if command == "ucinewgame" { board = chess::Board::default(); }
-        else if command == "position"   { change_position(arguments); }
+        else if command == "position"   { board = change_position(arguments); }
         else if command == "go"         { stop_search_vec = start_search_threads(2, board, info_sender.clone()); }
         else if command == "stop"       { send_termination_signal(&stop_search_vec, 100); }
         else if command == "quit"       { send_termination_signal(&stop_search_vec, 100); break;}
         else                            { log("bad input: {input}");}
-
-        // let result: Option<Vec<Sender<bool>>> = match command[0]{
-        //     "uci" => respond("uciok"),
-        //     "isready" => respond("readyok"),
-        //     //"ucinewgame" => newgame(),
-        //     "position" => change_position(),// change_position(command[1..]),
-        //     "go" => start_search_threads(2, board, info_sender.clone()),//start_search(command[1..]),
-        //     "stop" => {for sender in stop_search_vec {send_termination_signal(sender, 100);} continue;},
-        //     "quit" => {for sender in stop_search_vec {send_termination_signal(sender, 100)}; break},
-
-        //     _ => None,
-
-        // };
-
-        // if result.is_some() {
-        //     stop_search_vec = result.unwrap();
-        // }
 
     }
 
@@ -136,7 +126,7 @@ fn printing_loop(info_receiver: Receiver<rust_chess::SearchInfo>, print_reveiver
         
         if depth > 0 {
             
-            println!("d{depth} | {best_move} | {score} | ");
+            println!("info depth {depth} score cp {score} pv {best_move}");
         }
 
         let termination_signal = terminate_print_receiver.try_recv().unwrap_or(false);
