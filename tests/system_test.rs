@@ -16,11 +16,11 @@ mod tests {
         let max_depth = 6;
         let (_, rx) = mpsc::channel();
         let (tx, _) = mpsc::channel();
-        let context = rust_chess::SearchContext{board: board, receiver_channel: rx, sender_channel: tx};
+        let context = rust_chess::search::SearchContext{board: board, receiver_channel: rx, sender_channel: tx};
         
         let result = context.root_search( max_depth);
 
-        assert_eq!(result.0, rust_chess::INFINITY);
+        assert_eq!(result.0, rust_chess::search::INFINITY);
         assert_eq!(result.1, chess::ChessMove::from_str("f6a6").expect("Invalid Move"));
         
     }
@@ -31,10 +31,10 @@ mod tests {
         let max_depth = 6;
         let (_x, rx) = mpsc::channel();
         let (tx, _) = mpsc::channel();
-        let context = rust_chess::SearchContext{board: board, receiver_channel: rx, sender_channel: tx};
+        let context = rust_chess::search::SearchContext{board: board, receiver_channel: rx, sender_channel: tx};
         
         let result = context.root_search( max_depth);
-        assert_eq!(result.0, rust_chess::INFINITY);
+        assert_eq!(result.0, rust_chess::search::INFINITY);
         assert_eq!(result.1, chess::ChessMove::from_str("c3e5").expect("Invalid Move"));
         
     }
@@ -47,7 +47,7 @@ mod tests {
         
     //     let result = rust_chess::root_search(&board, max_depth, time_limit);
 
-    //     assert_eq!(result.0, rust_chess::INFINITY);
+    //     assert_eq!(result.0, rust_chess::search::INFINITY);
     //     assert_eq!(result.1, chess::ChessMove::from_str("d3h7").expect("Invalid Move"));
         
     // }
@@ -60,7 +60,7 @@ mod tests {
         
     //     let result = rust_chess::root_search(&board, max_depth, time_limit);
 
-    //     assert_eq!(result.0, rust_chess::INFINITY);
+    //     assert_eq!(result.0, rust_chess::search::INFINITY);
     //     assert_eq!(result.1, chess::ChessMove::from_str("e7e8").expect("Invalid Move"));
     // }
 
