@@ -5,7 +5,7 @@ use chess::{Board, MoveGen, Piece, ALL_PIECES, ChessMove, Square, BoardStatus, E
 
 type ScoreType = i32;
 type DepthType = u8;
-type SearchResult = (ScoreType, ChessMove);
+pub type SearchResult = (ScoreType, ChessMove);
 pub type SearchInfo = (ScoreType, ChessMove, DepthType);
 
 pub const INFINITY: i32 = 1000000;
