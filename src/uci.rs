@@ -8,6 +8,8 @@ use crate::search::{SearchInfo, SearchResult, SearchContext};
 
 const STOP_SIGNAL: bool = true;
 
+// TODO: Change this code to use the Game Struct from chess crate
+
 struct SearchThread {
     handle: JoinHandle<SearchResult>,
     termination_sender: Sender<bool>
@@ -34,7 +36,7 @@ pub fn uci_mode(){
         else if command == "isready"    { respond("readyok"); }
         else if command == "ucinewgame" { board = chess::Board::default(); }
         else if command == "position"   { board = change_position(arguments); }
-        else if command == "go"         { search_threads = start_search_threads(2, board, info_sender.clone()); }
+        else if command == "go"         { search_threads = start_search_threads(4, board, info_sender.clone()); }
         else if command == "stop"       { terminate_search(search_threads); search_threads = vec![] }
         else if command == "quit"       { terminate_search(search_threads); break;}
         else                            { log(format!("bad input: {input_line}"));}
@@ -148,22 +150,17 @@ fn printing_loop(info_receiver: Receiver<SearchInfo>, print_reveiver: Receiver<S
         thread::sleep(update_interval);
 
         let message = print_reveiver.try_recv().unwrap_or("".to_string());
-
-        if message.len() > 0 {
-            println!("{message}");
-        }
+        if message.len() > 0 { println!("{message}"); }
 
         let (score, best_move, depth) = info_receiver.try_recv().unwrap_or(
             (0, ChessMove::new(Square::A1, Square::A1, None), 0)
         );
         
-        if depth > 0 {
-            
+        if depth > 0 {    
             println!("info depth {depth} score cp {score} pv {best_move}");
         }
 
         let termination_signal = terminate_print_receiver.try_recv().unwrap_or(false);
-
         if termination_signal { return }
 
     }

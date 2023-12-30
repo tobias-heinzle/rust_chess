@@ -9,6 +9,7 @@ pub type SearchResult = (ScoreType, ChessMove);
 pub type SearchInfo = (ScoreType, ChessMove, DepthType);
 
 pub const INFINITY: i32 = 1000000;
+pub const DRAW: i32 = 0;
 const PIECE_VALUES: [i32; 6] = [80, 300, 305, 450, 900, INFINITY];
 const PIN_VALUE: i32 = 10;
 const MOBILITY_VALUE: i32 = 1;
@@ -98,7 +99,7 @@ impl SearchContext {
 
         match board.status() {
             BoardStatus::Checkmate => return -INFINITY,
-            BoardStatus::Stalemate => return 0,
+            BoardStatus::Stalemate => return DRAW,
             _ => {}
         }
         

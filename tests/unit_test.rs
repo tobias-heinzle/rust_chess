@@ -43,7 +43,7 @@ mod tests {
         
         let new_board = rust_chess::uci::change_position(&command[0 ..]);
         
-        // make move new, which is used in change_position apparently resets the halfmove and fullmove clock!
+        // Board struct does not track the move number, so there is no halfmove of fullmove clock in the struct*
         let resulting_position = "8/6Bk/8/8/8/8/7P/7K b - - 0 1".to_string();
         assert_eq!(format!("{new_board}"), resulting_position)
 

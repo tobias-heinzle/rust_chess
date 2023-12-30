@@ -39,6 +39,20 @@ mod tests {
         
     }
 
+    #[test]
+    fn repetition_draw(){
+        let board = chess::Board::from_str("kr4QQ/6QQ/6QQ/6QQ/6QQ/5PPP/4q3/7K b - - 0 1").expect("Invalid position");
+        let max_depth = 6;
+        let (_x, rx) = mpsc::channel();
+        let (tx, _) = mpsc::channel();
+        let context = rust_chess::search::SearchContext{board: board, receiver_channel: rx, sender_channel: tx};
+        
+        let result = context.root_search( max_depth);
+        assert_eq!(result.0, rust_chess::search::DRAW);
+    }
+
+    
+
     // #[test]
     // fn mate_in_four_0(){
     //     let board = chess::Board::from_str("r4r1k/1R1R2p1/7p/8/8/3Q1Ppq/P7/6K1 w - - 0 1").expect("Invalid position");
