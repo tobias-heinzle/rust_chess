@@ -4,6 +4,8 @@ use std::sync::mpsc::{self, Receiver, Sender};
 use std::str::FromStr;
 use chess::{self, ChessMove, Square};
 
+use std::fs;
+
 use crate::search::{SearchInfo, SearchResult, SearchContext};
 
 const STOP_SIGNAL: bool = true;
@@ -27,9 +29,9 @@ pub fn uci_mode(){
     
     let respond = |message: &str| {let _ = print_sender.send(message.to_string());};
 
-
     loop {
         let input_line = collect_user_input();
+        fs::write("log.txt", input_line.clone()).expect("Unable to write file");
         let input: Vec<&str> = input_line.split(" ").collect();
         let command = input[0];
         let arguments = &input[1..];
@@ -45,6 +47,7 @@ pub fn uci_mode(){
                 continue;
             } 
             else { 
+                // TODO: Accept movetime parameter!
                 search_threads = start_search_threads(4, board, info_sender.clone());
                 is_searching = true; 
             }
@@ -118,7 +121,7 @@ fn terminate_search(threads: Vec<SearchThread>) {
     let (score, best_move) = results[0];
 
     println!("info score cp {score}");
-    println!("bm {best_move}");
+    println!("bestmove {best_move}");
 }
 
 fn log(text: String) {
