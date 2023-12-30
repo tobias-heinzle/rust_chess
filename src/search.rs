@@ -1,19 +1,29 @@
 
 use std::cmp::max;
 use std::sync::mpsc;
-use chess::{Board, MoveGen, Piece, ALL_PIECES, ChessMove, Square, BoardStatus, EMPTY, BitBoard};
+use chess::{Board, MoveGen, Piece, ChessMove, Square, BoardStatus, EMPTY, BitBoard};
 
 type ScoreType = i32;
 type DepthType = u8;
 pub type SearchResult = (ScoreType, ChessMove);
 pub type SearchInfo = (ScoreType, ChessMove, DepthType);
 
+// Evaluation constants
 pub const INFINITY: i32 = 1000000;
 pub const DRAW: i32 = 0;
-const PIECE_VALUES: [i32; 6] = [80, 300, 305, 450, 900, INFINITY];
+
+const PAWN_VALUE: i32 = 80;
+const KNIGHT_VALUE: i32 = 300;
+const BISHOP_VALUE: i32 = 305;
+const ROOK_VALUE: i32 = 450;
+const QUEEN_VALUE: i32 = 900;
+// const PIECE_VALUES: [i32; 6] = [PAWN_VALUE, KNIGHT_VALUE, BISHOP_VALUE, ROOK_VALUE, QUEEN_VALUE, INFINITY];
+
 const PIN_VALUE: i32 = 10;
 const MOBILITY_VALUE: i32 = 1;
 const IN_CHECK_PENALTY: i32 = 30;
+
+// Move ordering
 const MVV_ORDERING: [Piece; 6] = [Piece::Queen, Piece::Rook, Piece::Bishop, Piece::Knight, Piece::Pawn, Piece::King];
 const QS_ORDERING: [Piece; 5] = [Piece::Queen, Piece::Rook, Piece::Bishop, Piece::Knight, Piece::Pawn];
 
@@ -141,24 +151,63 @@ fn evaluate(board: &Board) -> ScoreType{
 
     let all_player =  player_pieces(board);
     let all_opponent =  opponent_pieces(board);
+    let blockers = all_player | all_opponent;
+
+    // Pawn evaluation
+    let mut player = board.pieces(Piece::Pawn) & all_player;
+    let mut opponent = board.pieces(Piece::Pawn) & all_opponent;
+
+    score += PAWN_VALUE * (player.popcnt() as i32 - opponent.popcnt() as i32);
+
+    // Knight evalutation
+    player = board.pieces(Piece::Knight) & all_player;
+    opponent = board.pieces(Piece::Knight) & all_opponent;
+
+    score += KNIGHT_VALUE * (player.popcnt() as i32 - opponent.popcnt() as i32);
     
-
-    for (i, piece) in ALL_PIECES.iter().enumerate() {
-        
-        let player = board.pieces(*piece) & all_player;
-        let opponent = board.pieces(*piece) & all_opponent;
-
-        score += PIECE_VALUES[i] * (player.popcnt() as i32 - opponent.popcnt() as i32);
+    for square in player {
+        score += MOBILITY_VALUE * chess::get_knight_moves(square).popcnt() as i32;
     }
+    for square in opponent {
+        score -= MOBILITY_VALUE * chess::get_knight_moves(square).popcnt() as i32;
+    }
+
+    // Bishop evalutation
+    player = board.pieces(Piece::Bishop) & all_player;
+    opponent = board.pieces(Piece::Bishop) & all_opponent;
+
+    score += BISHOP_VALUE * (player.popcnt() as i32 - opponent.popcnt() as i32);
+    
+    for square in player {
+        score += MOBILITY_VALUE * chess::get_bishop_moves(square, blockers).popcnt() as i32;
+    }
+    for square in opponent {
+        score -= MOBILITY_VALUE * chess::get_bishop_moves(square, blockers).popcnt() as i32;
+    }
+
+    // Rook evalutation
+    player = board.pieces(Piece::Rook) & all_player;
+    opponent = board.pieces(Piece::Rook) & all_opponent;
+
+    score += ROOK_VALUE * (player.popcnt() as i32 - opponent.popcnt() as i32);
+    
+    for square in player {
+        score += MOBILITY_VALUE * chess::get_rook_moves(square, blockers).popcnt() as i32;
+    }
+    for square in opponent {
+        score -= MOBILITY_VALUE * chess::get_rook_moves(square, blockers).popcnt() as i32;
+    }
+
+    // Queen evaluation
+    player = board.pieces(Piece::Queen) & all_player;
+    opponent = board.pieces(Piece::Queen) & all_opponent;
+
+    score += QUEEN_VALUE * (player.popcnt() as i32 - opponent.popcnt() as i32);
 
     score += PIN_VALUE * (board.pinned() & all_opponent).popcnt() as i32;
     score -= PIN_VALUE * (board.pinned() & all_player).popcnt() as i32;
 
-    if *board.checkers() == EMPTY{
-        score += MOBILITY_VALUE * MoveGen::movegen_perft_test(board, 1) as i32;
-        score -= MOBILITY_VALUE * MoveGen::movegen_perft_test(&board.null_move().expect("Valid Position"), 1) as i32;
-    }
-    else {
+    if *board.checkers() != EMPTY{
         score -= IN_CHECK_PENALTY;
     }
 

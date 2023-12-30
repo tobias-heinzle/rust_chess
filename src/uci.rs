@@ -8,7 +8,7 @@ use crate::search::{SearchInfo, SearchResult, SearchContext};
 
 const STOP_SIGNAL: bool = true;
 
-// TODO: Change this code to use the Game Struct from chess crate
+// TODO: Change this code to use the Game Struct from chess crate   
 
 struct SearchThread {
     handle: JoinHandle<SearchResult>,
@@ -17,6 +17,7 @@ struct SearchThread {
 
 pub fn uci_mode(){
     let mut board = chess::Board::default();
+    let mut is_searching = false;
 
     let (print_sender, 
         info_sender, 
@@ -25,6 +26,7 @@ pub fn uci_mode(){
     let mut search_threads: Vec<SearchThread> = vec![];
     
     let respond = |message: &str| {let _ = print_sender.send(message.to_string());};
+
 
     loop {
         let input_line = collect_user_input();
@@ -36,9 +38,17 @@ pub fn uci_mode(){
         else if command == "isready"    { respond("readyok"); }
         else if command == "ucinewgame" { board = chess::Board::default(); }
         else if command == "position"   { board = change_position(arguments); }
-        else if command == "go"         { search_threads = start_search_threads(4, board, info_sender.clone()); }
-        else if command == "stop"       { terminate_search(search_threads); search_threads = vec![] }
+        else if command == "stop"       { terminate_search(search_threads); search_threads = vec![]; is_searching = false; }
         else if command == "quit"       { terminate_search(search_threads); break;}
+        else if command == "go"         { 
+            if is_searching {
+                continue;
+            } 
+            else { 
+                search_threads = start_search_threads(4, board, info_sender.clone());
+                is_searching = true; 
+            }
+        }
         else                            { log(format!("bad input: {input_line}"));}
 
     }
@@ -66,10 +76,14 @@ fn start_output_thread() -> (Sender<String>, Sender<SearchInfo>, Sender<bool>, J
 
 fn start_search_threads(n_workers: u8, board: chess::Board,  info_sender: Sender<SearchInfo>) -> Vec<SearchThread> {
     let mut search_threads:  Vec<SearchThread> = vec![];
+    let (dummy_sender, _) = mpsc::channel();
 
-    for _ in 0 .. n_workers {
+    for i in 0 .. n_workers {
         let (stop_sender, stop_receiver) = mpsc::channel();
-        let context = SearchContext{board: board, receiver_channel: stop_receiver, sender_channel: info_sender.clone()};
+        let context = SearchContext{
+            board: board, 
+            receiver_channel: stop_receiver, 
+            sender_channel: if i == 0 { info_sender.clone() } else { dummy_sender.clone() } };
         let thread_handle = thread::spawn(move || context.root_search(99));
         
         let search_thread = SearchThread{handle: thread_handle, termination_sender: stop_sender};
