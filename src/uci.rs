@@ -31,7 +31,6 @@ pub fn uci_mode(){
 
     loop {
         let input_line = collect_user_input();
-        fs::write("log.txt", input_line.clone()).expect("Unable to write file");
         let input: Vec<&str> = input_line.split(" ").collect();
         let command = input[0];
         let arguments = &input[1..];
