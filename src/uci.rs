@@ -4,8 +4,6 @@ use std::sync::mpsc::{self, Receiver, Sender};
 use std::str::FromStr;
 use chess::{self, ChessMove, Square};
 
-use std::fs;
-
 use crate::search::{SearchInfo, SearchResult, SearchContext};
 
 const STOP_SIGNAL: bool = true;
@@ -47,7 +45,7 @@ pub fn uci_mode(){
             } 
             else { 
                 // TODO: Accept movetime parameter!
-                search_threads = start_search_threads(4, board, info_sender.clone());
+                search_threads = start_search_threads(1, board, info_sender.clone());
                 is_searching = true; 
             }
         }

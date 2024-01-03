@@ -5,3 +5,4 @@
 /.venv
 lichess.token
 allowed.challengers
+*/__pycache__/
