@@ -68,19 +68,28 @@ class Game():
 
 
 def should_accept(challenge_event) -> bool:
-    print(challenge_event)
+    rated = challenge_event["challenge"]["rated"]
+    speed = challenge_event["challenge"]["speed"]
+    variant = challenge_event["challenge"]["variant"]["key"]
+    challenger = challenge_event["challenge"]["challenger"]["id"]
+    game_id = challenge_event["challenge"]["id"]
+
+    is_rated = "rated" if rated else "unrated"
+    print(f"Challenge by {challenger}; ID: {game_id} - {variant} - {speed} - {is_rated}")
+ 
     with open("allowed.challengers") as file:
 
         # These challengers can submit any challenge and it will be accepted
         allowed_challengers = file.readlines()
-        if challenge_event["challenge"]["challenger"]["id"] in allowed_challengers:
+        if challenger in allowed_challengers:
             return True
-        
+
         # Other challengers may only challenge to rated games
-        elif challenge_event["challenge"]["rated"]:
-            if challenge_event["challenge"]["speed"] not in RATED_SPEEDS:
+        elif rated:
+            if speed not in RATED_SPEEDS or variant != "standard":
                 return False
             return True
+        
         return False
     
 def main_loop():
