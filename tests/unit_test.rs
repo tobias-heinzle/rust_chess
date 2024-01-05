@@ -14,7 +14,7 @@ mod tests {
         let beta = 100;
         let (_, rx) = mpsc::channel();
         let (tx, _) = mpsc::channel();
-        let context = rust_chess::search::SearchContext{board: board, receiver_channel: rx, sender_channel: tx};
+        let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
         
         let result = context.quiescence_search(&board, alpha, beta);
 
@@ -30,7 +30,7 @@ mod tests {
 
         let (_, rx) = mpsc::channel();
         let (tx, _) = mpsc::channel();
-        let context = rust_chess::search::SearchContext{board: board, receiver_channel: rx, sender_channel: tx};
+        let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
         
         let result = context.quiescence_search(&board, alpha, beta);
 
@@ -41,7 +41,7 @@ mod tests {
     fn uci_read_position(){
         let command: Vec<&str> = "fen 7k/6Rp/7B/8/8/8/7P/7K w - - 0 1 moves g7h7 h8h7 h6g7".split(" ").collect();
         
-        let new_board = rust_chess::uci::change_position(&command[0 ..]);
+        let (new_board, _) = rust_chess::uci::change_position(&command[0 ..]);
         
         // Board struct does not track the move number, so there is no halfmove of fullmove clock in the struct*
         let resulting_position = "8/6Bk/8/8/8/8/7P/7K b - - 0 1".to_string();

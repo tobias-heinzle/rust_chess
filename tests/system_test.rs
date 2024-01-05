@@ -16,7 +16,7 @@ mod tests {
         let max_depth = 6;
         let (_, rx) = mpsc::channel();
         let (tx, _) = mpsc::channel();
-        let context = rust_chess::search::SearchContext{board: board, receiver_channel: rx, sender_channel: tx};
+        let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
         
         let result = context.root_search( max_depth);
 
@@ -31,7 +31,7 @@ mod tests {
         let max_depth = 6;
         let (_x, rx) = mpsc::channel();
         let (tx, _) = mpsc::channel();
-        let context = rust_chess::search::SearchContext{board: board, receiver_channel: rx, sender_channel: tx};
+        let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
         
         let result = context.root_search( max_depth);
         assert_eq!(result.0, rust_chess::search::INFINITY);
@@ -45,7 +45,7 @@ mod tests {
         let max_depth = 6;
         let (_x, rx) = mpsc::channel();
         let (tx, _) = mpsc::channel();
-        let context = rust_chess::search::SearchContext{board: board, receiver_channel: rx, sender_channel: tx};
+        let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
         
         let result = context.root_search( max_depth);
         assert_eq!(result.0, rust_chess::search::DRAW);

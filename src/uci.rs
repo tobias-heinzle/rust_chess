@@ -17,6 +17,7 @@ struct SearchThread {
 
 pub fn uci_mode(){
     let mut board = chess::Board::default();
+    let mut position_hashes: Vec<u64> = vec![];
     let mut is_searching = false;
 
     let (print_sender, 
@@ -35,8 +36,8 @@ pub fn uci_mode(){
 
         if      command == "uci"        { respond("uciok"); }
         else if command == "isready"    { respond("readyok"); }
-        else if command == "ucinewgame" { board = chess::Board::default(); }
-        else if command == "position"   { board = change_position(arguments); }
+        else if command == "ucinewgame" { board = chess::Board::default(); position_hashes = vec![]; }
+        else if command == "position"   { (board, position_hashes) = change_position(arguments); }
         else if command == "stop"       { terminate_search(search_threads); search_threads = vec![]; is_searching = false; }
         else if command == "quit"       { terminate_search(search_threads); break;}
         else if command == "go"         { 
@@ -45,7 +46,7 @@ pub fn uci_mode(){
             } 
             else { 
                 // TODO: Accept movetime parameter!
-                search_threads = start_search_threads(1, board, info_sender.clone());
+                search_threads = start_search_threads(1, board, info_sender.clone(), position_hashes.clone());
                 is_searching = true; 
             }
         }
@@ -74,16 +75,21 @@ fn start_output_thread() -> (Sender<String>, Sender<SearchInfo>, Sender<bool>, J
 }
 
 
-fn start_search_threads(n_workers: u8, board: chess::Board,  info_sender: Sender<SearchInfo>) -> Vec<SearchThread> {
+fn start_search_threads(n_workers: u8, board: chess::Board,  info_sender: Sender<SearchInfo>, position_hashes: Vec<u64>) -> Vec<SearchThread> {
     let mut search_threads:  Vec<SearchThread> = vec![];
     let (dummy_sender, _) = mpsc::channel();
 
     for i in 0 .. n_workers {
         let (stop_sender, stop_receiver) = mpsc::channel();
-        let context = SearchContext{
-            board: board, 
-            receiver_channel: stop_receiver, 
-            sender_channel: if i == 0 { info_sender.clone() } else { dummy_sender.clone() } };
+        let mut context = SearchContext::new(
+            board, 
+            stop_receiver, 
+            if i == 0 { info_sender.clone() } else { dummy_sender.clone() });
+        
+        for hash in position_hashes.iter() {
+            context.set_visited(*hash);
+        }
+
         let thread_handle = thread::spawn(move || context.root_search(99));
         
         let search_thread = SearchThread{handle: thread_handle, termination_sender: stop_sender};
@@ -125,8 +131,9 @@ fn log(text: String) {
     println!("{text}");
 }
 
-pub fn change_position(arguments: &[&str]) -> chess::Board{
+pub fn change_position(arguments: &[&str]) -> (chess::Board, Vec<u64>){
     let mut new_board = chess::Board::default();
+    let mut hash_vec: Vec<u64> = vec![];
 
     let moves_index = arguments.iter().position(|&r| r == "moves").unwrap_or(arguments.len());
 
@@ -135,16 +142,19 @@ pub fn change_position(arguments: &[&str]) -> chess::Board{
         new_board = chess::Board::from_str(&fen_string).unwrap_or(new_board);
     }
 
+    hash_vec.push(new_board.get_hash());
+
     for move_str in &arguments[moves_index .. ]{
         let move_obj = chess::ChessMove::from_str(move_str);
 
         if move_obj.is_ok() {
             new_board = new_board.make_move_new(move_obj.unwrap());
+            hash_vec.push(new_board.get_hash());
         }
 
     }
 
-    return new_board; 
+    return (new_board, hash_vec); 
 }
 
 

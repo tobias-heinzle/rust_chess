@@ -1,6 +1,7 @@
 
 use std::cmp::max;
 use std::sync::mpsc;
+use derive_new::new;
 use chess::{Board, MoveGen, Piece, ChessMove, Square, BoardStatus, EMPTY, BitBoard};
 
 type ScoreType = i32;
@@ -27,21 +28,29 @@ const IN_CHECK_PENALTY: i32 = 30;
 const MVV_ORDERING: [Piece; 6] = [Piece::Queen, Piece::Rook, Piece::Bishop, Piece::Knight, Piece::Pawn, Piece::King];
 const QS_ORDERING: [Piece; 5] = [Piece::Queen, Piece::Rook, Piece::Bishop, Piece::Knight, Piece::Pawn];
 
+// Repetition detection
+const REP_TABLE_SIZE: usize = 1 << 16;
+
+#[derive(new)]
 pub struct SearchContext {
     pub board: Board,
     pub receiver_channel: mpsc::Receiver<bool>,
     pub sender_channel: mpsc::Sender<SearchInfo>,
 
-}
+    #[new(value = "[0; REP_TABLE_SIZE]")]
+    pub repetition_table: [u8; REP_TABLE_SIZE],
+
+} 
 
 impl SearchContext {
 
-    pub fn root_search(&self, max_depth: DepthType) -> SearchResult{
-    
+    pub fn root_search(&mut self, max_depth: DepthType) -> SearchResult{
 
         let mut best_move = ChessMove::new(Square::A1, Square::A1, None);
         let mut move_vec = get_legal_moves_vector(& self.board);
         let mut score = -INFINITY;
+
+        self.set_visited(self.board.get_hash());
     
         for depth in 1..(max_depth + 1) {
             let mut current_best = best_move;
@@ -69,21 +78,28 @@ impl SearchContext {
             best_move = current_best;
             self.sender_channel.send((score, best_move, depth)).unwrap_or_default();
         }
-        
+
+        self.unset_visited(self.board.get_hash());
         return (score, best_move)
     }
 
 
 
-    pub fn search(&self, board: &Board, depth: DepthType, mut alpha: ScoreType, beta: ScoreType) -> ScoreType{
+    pub fn search(&mut self, board: &Board, depth: DepthType, mut alpha: ScoreType, beta: ScoreType) -> ScoreType{
 
         if depth <= 0 || board.status() != BoardStatus::Ongoing{
             return self.quiescence_search(board, alpha, beta)
         }
-    
+
+        if self.already_visited(board.get_hash()){
+            return DRAW;
+        }
+        
+        self.set_visited(board.get_hash());
+       
         let mut iterable = MoveGen::new_legal(board);
     
-        for piece in MVV_ORDERING {
+        'outer: for piece in MVV_ORDERING {
             if self.receiver_channel.try_recv().unwrap_or(false){return alpha; }
 
             iterable.set_iterator_mask( get_targets(&board, piece ));
@@ -96,16 +112,18 @@ impl SearchContext {
                 alpha = max(alpha, value);
                 
                 
-                if alpha >= beta { break; }
+                if alpha >= beta { break 'outer; }
                 
             }
         }
-    
+
+        self.unset_visited(board.get_hash());
+
         return alpha
     }
 
 
-    pub fn quiescence_search(&self, board: &Board, mut alpha: ScoreType, beta: ScoreType) -> i32{
+    pub fn quiescence_search(&mut self, board: &Board, mut alpha: ScoreType, beta: ScoreType) -> i32{
 
         match board.status() {
             BoardStatus::Checkmate => return -INFINITY,
@@ -113,14 +131,18 @@ impl SearchContext {
             _ => {}
         }
         
-
+        if self.already_visited(board.get_hash()){
+            return DRAW;
+        }
+        
         alpha = max(evaluate(board), alpha);
         if alpha >= beta { return beta };
-
+        
+        self.set_visited(board.get_hash());
 
         let mut iterable = MoveGen::new_legal(board);
 
-        for piece in QS_ORDERING {
+        'outer: for piece in QS_ORDERING {
 
             iterable.set_iterator_mask( get_targets(board, piece) );
 
@@ -134,14 +156,32 @@ impl SearchContext {
                 alpha = max(alpha, value);
 
 
-                if alpha >= beta {return alpha;}
+                if alpha >= beta {break 'outer}
                 
             }
         }
 
+        self.unset_visited(board.get_hash());
         return alpha;
 
     }
+
+    pub fn already_visited(&mut self, position_hash: u64) -> bool{
+        if self.repetition_table[position_hash as usize % REP_TABLE_SIZE] == 1{
+            return true;
+        }
+        return false
+    }
+    
+    pub fn set_visited(&mut self, position_hash: u64) {
+        self.repetition_table[position_hash as usize % REP_TABLE_SIZE] = 1;
+    }
+
+    pub fn unset_visited(&mut self, position_hash: u64) {
+        self.repetition_table[position_hash as usize % REP_TABLE_SIZE] = 0;
+    }
+
+
 }
 
 

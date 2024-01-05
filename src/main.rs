@@ -54,7 +54,7 @@ fn text_ui_mode() {
     loop {
         let (stop_sender, stop_receiver) = mpsc::channel();
         let (info_sender, info_receiver) = mpsc::channel();
-        let context = search::SearchContext{board: board, receiver_channel: stop_receiver, sender_channel: info_sender};
+        let mut context = search::SearchContext::new(board, stop_receiver, info_sender);
 
         let now = Instant::now();
 
