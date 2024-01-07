@@ -94,6 +94,7 @@ async def selfplay_loop():
                     print(f"Game {game}: {move} -- {result}")
                 
                 if very_verbose:
+                    print(name_a, "is", engine_a_color, ", opponent is", name_b)
                     print(board)
             
             outcome = board.outcome(claim_draw = True)
