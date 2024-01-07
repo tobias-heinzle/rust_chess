@@ -7,3 +7,4 @@ lichess.token
 allowed.challengers
 */__pycache__/
 /scripts/books/*
+/executables

@@ -90,7 +90,7 @@ fn start_search_threads(n_workers: u8, board: chess::Board,  info_sender: Sender
             context.set_visited(*hash);
         }
 
-        let thread_handle = thread::spawn(move || context.root_search(99));
+        let thread_handle = thread::spawn(move || context.root_search(200));
         
         let search_thread = SearchThread{handle: thread_handle, termination_sender: stop_sender};
 
@@ -118,7 +118,10 @@ fn terminate_search(threads: Vec<SearchThread>) {
     let mut results = vec![];
 
     for thread in threads {
-        results.push(thread.handle.join().unwrap());
+        let thread_result = thread.handle.join();
+        if thread_result.is_ok() {
+            results.push(thread_result.unwrap());
+        }
     }
 
     let (score, best_move) = results[0];
@@ -148,6 +151,7 @@ pub fn change_position(arguments: &[&str]) -> (chess::Board, Vec<u64>){
         let parsed_move_result = chess::ChessMove::from_str(move_str);
 
         if parsed_move_result.is_ok() {
+            // TODO: Figure out why this sometimes returns an error value and deal with it
             let move_obj = parsed_move_result.unwrap();
             new_board = new_board.make_move_new(move_obj);
             hash_vec.push(new_board.get_hash());

@@ -1,0 +1,13 @@
+{
+    "time_limit": 0.1,
+    "date": "2024-01-07 19:31:45",
+    "engine_a": "rust_chess",
+    "engine_b": "rust_chess",
+    "errors": 9,
+    "statistics": {
+        "wins_a": 29,
+        "wins_b": 70,
+        "draws": 0,
+        "total": 99
+    }
+}

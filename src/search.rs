@@ -2,7 +2,7 @@
 use std::cmp::max;
 use std::sync::mpsc;
 use derive_new::new;
-use chess::{Board, MoveGen, Piece, ChessMove, Square, BoardStatus, EMPTY, BitBoard};
+use chess::{Board, MoveGen, Piece, ChessMove, Square, BoardStatus, EMPTY, BitBoard, CacheTable};
 
 type ScoreType = i32;
 type DepthType = u8;
@@ -31,8 +31,22 @@ const QS_ORDERING: [Piece; 5] = [Piece::Queen, Piece::Rook, Piece::Bishop, Piece
 // Repetition detection
 const REP_TABLE_SIZE: usize = 1 << 16;
 
+// Hash table
+const HASH_TABLE_SIZE: usize = 1 << 20;
+
+#[derive(Clone, Copy, PartialEq, PartialOrd)]
+struct HashTableEntry {
+    pub best_move: ChessMove,
+    pub score: ScoreType,
+    pub depth: DepthType,
+}
+
 #[derive(new)]
 pub struct SearchContext {
+    // This struct contains all the information a thread needs search a position
+    // In order to correctly identify a draw by threefold repetition, the SearchContext
+    // needs to know the hashes of all previous positions. Also, after initializing, the
+    // repetition_table needs to be incremented at the entries corresponding to these positions
     pub board: Board,
     pub receiver_channel: mpsc::Receiver<bool>,
     pub sender_channel: mpsc::Sender<SearchInfo>,
@@ -42,6 +56,8 @@ pub struct SearchContext {
     #[new(value = "vec![]")]
     pub past_position_hashes: Vec<u64>,
 
+    #[new(value = "CacheTable::new(HASH_TABLE_SIZE, HashTableEntry{best_move : ChessMove::new(Square::A1, Square::A1, None), score : 0, depth : 0})")]
+    hash_table: CacheTable<HashTableEntry>,
 } 
 
 impl SearchContext {
@@ -51,10 +67,11 @@ impl SearchContext {
         let mut best_move = ChessMove::new(Square::A1, Square::A1, None);
         let mut move_vec = get_legal_moves_vector(& self.board);
         let mut score = -INFINITY;
-
+        
         self.set_visited(self.board.get_hash());
     
-        for depth in 1..(max_depth + 1) {
+        'iterative_depening: for depth in 1..(max_depth + 1) {
+            
             let mut current_best = best_move;
             let mut alpha = -INFINITY;
     
@@ -73,7 +90,7 @@ impl SearchContext {
                     current_best = *chess_move;
                     alpha = value;
                 }
-                if self.receiver_channel.try_recv().unwrap_or(false){return (score, best_move) }
+                if self.receiver_channel.try_recv().unwrap_or(false){break 'iterative_depening }
             }
 
             score = alpha;
@@ -93,12 +110,44 @@ impl SearchContext {
             return self.quiescence_search(board, alpha, beta)
         }
 
+
         if self.already_visited(board.get_hash()){
             return DRAW;
         }
         
         self.set_visited(board.get_hash());
-       
+        
+        let mut best_move = ChessMove::new(Square::A1, Square::A1, None);
+
+        let table_probe = self.hash_table.get(board.get_hash());
+        
+        if table_probe.is_some() {
+            let table_entry = table_probe.unwrap();
+
+            if table_entry.depth >= depth {
+                if table_entry.score >= beta {
+                    self.unset_visited(board.get_hash());
+                    return table_entry.score;
+                }
+            }
+            
+            if board.legal(table_entry.best_move){
+                
+                let value = - self.search(&board.make_move_new(table_entry.best_move), depth - 1, -beta, -alpha);
+    
+                alpha = max(alpha, value);
+                
+                if alpha >= beta { 
+                    self.unset_visited(board.get_hash());
+                    return alpha
+                }
+
+                best_move = table_entry.best_move
+            }
+            
+        }
+        
+        
         let mut iterable = MoveGen::new_legal(board);
     
         'outer: for piece in MVV_ORDERING {
@@ -107,17 +156,26 @@ impl SearchContext {
             iterable.set_iterator_mask( get_targets(&board, piece ));
     
             for chess_move in &mut iterable{
+
+                if chess_move == best_move { continue; }
     
                 let value = - self.search(&board.make_move_new(chess_move), depth - 1, -beta, -alpha);
     
                 
-                alpha = max(alpha, value);
+                if value > alpha {
+                    best_move = chess_move;
+                    alpha = value;
+                }
                 
                 
                 if alpha >= beta { break 'outer; }
                 
             }
         }
+
+        let table_entry = HashTableEntry{best_move: best_move, score: alpha, depth: depth};
+
+        self.hash_table.add(board.get_hash(), table_entry);
 
         self.unset_visited(board.get_hash());
 
@@ -142,6 +200,34 @@ impl SearchContext {
         
         self.set_visited(board.get_hash());
 
+        let mut best_move = ChessMove::new(Square::A1, Square::A1, None);
+
+        let table_probe = self.hash_table.get(board.get_hash());
+        
+        if table_probe.is_some() {
+            let table_entry = table_probe.unwrap();
+
+            if table_entry.score >= beta {
+                self.unset_visited(board.get_hash());
+                return table_entry.score;
+            }
+            
+            if board.legal(table_entry.best_move){
+                
+                let value = - self.quiescence_search(&board.make_move_new(table_entry.best_move), -beta, -alpha);
+    
+                alpha = max(alpha, value);
+                
+                if alpha >= beta { 
+                    self.unset_visited(board.get_hash());
+                    return alpha
+                }
+
+                best_move = table_entry.best_move
+            }
+            
+        }
+
         let mut iterable = MoveGen::new_legal(board);
 
         'outer: for piece in QS_ORDERING {
@@ -150,7 +236,7 @@ impl SearchContext {
 
 
             for chess_move in &mut iterable{
-
+                if chess_move == best_move { continue; }
             
                 let value = - self.quiescence_search(&board.make_move_new(chess_move), -beta, -alpha);
 

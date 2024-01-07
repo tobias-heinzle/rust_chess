@@ -75,7 +75,7 @@ class Game():
         await engine.quit()
 
     async def bot_move(self, engine, time_limit = None):
-        book_move = choose_book_move(self.board)
+        book_move = engine.choose_book_move(self.board)
 
         if book_move is not None:
             move = book_move
@@ -90,19 +90,6 @@ class Game():
         self.client.bots.make_move(self.game_id, str(move))
 
         print("ID: " + str(self.game_id) + " info: " + str(move) + " " + str(result) + " time: " + str(time_limit))
-
-
-
-
-def choose_book_move(board: chess.Board, book: str = "books/titans.bin") -> chess.Move | None:
-    with chess.polyglot.open_reader("books/titans.bin") as reader:
-        book_entries = list(reader.find_all(board))
-
-        if len(book_entries) > 0:
-            weights = [entry.weight for entry in book_entries]
-            return sample(book_entries, 1, counts=weights)[0].move
-
-    return None
 
 
 def should_accept(challenge_event) -> bool:

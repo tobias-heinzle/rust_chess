@@ -1,5 +1,8 @@
-from chess import engine, Board
+from random import sample
 from time import sleep
+
+from chess import engine, Board, Move
+from chess.polyglot import open_reader
 
 
 class ChessEngineWrapper:
@@ -33,3 +36,13 @@ class ChessEngineWrapper:
     
     async def quit(self):
         await self.protocol.quit()
+
+    def choose_book_move(self, board: Board, book: str = "books/titans.bin") -> Move | None:
+        with open_reader("books/titans.bin") as reader:
+            book_entries = list(reader.find_all(board))
+
+            if len(book_entries) > 0:
+                weights = [entry.weight for entry in book_entries]
+                return sample(book_entries, 1, counts=weights)[0].move
+
+        return None

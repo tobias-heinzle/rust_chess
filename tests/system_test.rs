@@ -85,6 +85,32 @@ mod tests {
         assert_eq!(fen, "R5k1/8/6pp/5p2/P4P2/r3P3/5KPP/8 b - - 0 1");
         assert!(result.0 == rust_chess::search::DRAW);
     }
+
+    #[test]
+    fn find_critical_endgame_move_part_1() {
+        let board = chess::Board::from_str("8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1").expect("Invalid position");
+        let max_depth = 18;
+        let (_x, rx) = mpsc::channel();
+        let (tx, _) = mpsc::channel();
+        let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
+        
+        let result = context.root_search( max_depth);
+        assert_eq!(result.1, chess::ChessMove::from_str("a1b1").expect("Invalid Move"));
+    
+    }
+
+    #[test]
+    fn find_critical_endgame_move_part_2() {
+        let board = chess::Board::from_str("8/1k6/3p4/p2P1p2/P2P1P2/8/8/1K6 w - - 2 2").expect("Invalid position");
+        let max_depth = 18;
+        let (_x, rx) = mpsc::channel();
+        let (tx, _) = mpsc::channel();
+        let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
+        
+        let result = context.root_search( max_depth);
+        assert_eq!(result.1, chess::ChessMove::from_str("b1c1").expect("Invalid Move"));
+    
+    }
     
 
     // #[test]
