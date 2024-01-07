@@ -49,9 +49,21 @@ fn liberman_pos_d1_benchmark(c: &mut Criterion) {
         || context.root_search(black_box(1))));
 }
 
+fn middlegame_pos_d6_benchmark(c: &mut Criterion) {
+    let board = chess::Board::from_str("r4r1k/1pq1p1bp/1pnp2p1/p2B4/2PP2Q1/4B2P/PP3PP1/1R3RK1 w - - 6 20").expect("Valid Board");
+    let (_, rx) = mpsc::channel();
+    let (tx, _) = mpsc::channel();
+    let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
+
+    c.bench_function("root_search_middlegame_pos_d6",
+     |b| b.iter(
+        || context.root_search(black_box(6))));
+}
+
 criterion_group!(benches, 
     starting_pos_d5_benchmark, 
     custom_pos_d5_benchmark, 
     chezzz_pos_d3_benchmark, 
-    liberman_pos_d1_benchmark);
+    liberman_pos_d1_benchmark,
+    middlegame_pos_d6_benchmark,);
 criterion_main!(benches);
