@@ -2,6 +2,8 @@ import asyncio
 from random import sample
 from time import sleep
 from datetime import datetime
+from requests.exceptions import ChunkedEncodingError
+from urllib3.exceptions import InvalidChunkLength, ProtocolError
 
 import berserk
 import chess
@@ -165,6 +167,10 @@ while True:
     except RuntimeError as exc:
         sleep(1.0)
         print("Restarting afer RuntimeError: ", exc)
+        continue
+    except (ChunkedEncodingError, ProtocolError, InvalidChunkLength) as exc:
+        sleep(1.0)
+        print("Restarting afer connection problem: ", exc)
         continue
     quit()
     
