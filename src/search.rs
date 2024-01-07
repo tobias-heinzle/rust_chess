@@ -39,6 +39,8 @@ pub struct SearchContext {
 
     #[new(value = "[0; REP_TABLE_SIZE]")]
     pub repetition_table: [u8; REP_TABLE_SIZE],
+    #[new(value = "vec![]")]
+    pub past_position_hashes: Vec<u64>,
 
 } 
 
@@ -167,18 +169,24 @@ impl SearchContext {
     }
 
     pub fn already_visited(&mut self, position_hash: u64) -> bool{
-        if self.repetition_table[position_hash as usize % REP_TABLE_SIZE] == 1{
-            return true;
+        if self.repetition_table[position_hash as usize % REP_TABLE_SIZE] >= 1{
+            for past_hash in self.past_position_hashes.iter() {
+                if position_hash == *past_hash {
+                    return true;
+                }
+            }
         }
-        return false
+        return false;
     }
     
     pub fn set_visited(&mut self, position_hash: u64) {
-        self.repetition_table[position_hash as usize % REP_TABLE_SIZE] = 1;
+        self.repetition_table[position_hash as usize % REP_TABLE_SIZE] += 1;
+        self.past_position_hashes.push(position_hash);
     }
 
     pub fn unset_visited(&mut self, position_hash: u64) {
-        self.repetition_table[position_hash as usize % REP_TABLE_SIZE] = 0;
+        self.repetition_table[position_hash as usize % REP_TABLE_SIZE] -= 1;
+        self.past_position_hashes.pop();
     }
 
 

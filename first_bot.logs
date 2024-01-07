@@ -1,0 +1,350 @@
+2024-01-06 20:28:37.233795 | challenge by infectedchess; ID: b4yn58cB - standard - bullet - rated
+Accepted challenge of infectedchess
+{'type': 'gameStart', 'game': {'fullId': 'b4yn58cBWeJ7', 'gameId': 'b4yn58cB', 'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'color': 'black', 'lastMove': '', 'source': 'friend', 'status': {'id': 20, 'name': 'started'}, 'variant': {'key': 'standard', 'name': 'Standard'}, 'speed': 'bullet', 'perf': 'bullet', 'rated': True, 'hasMoved': False, 'opponent': {'id': 'infectedchess', 'username': 'infectedChess', 'rating': 1075}, 'isMyTurn': False, 'secondsLeft': 60, 'compat': {'bot': True, 'board': False}, 'id': 'b4yn58cB'}}
+Game started: b4yn58cB
+ID: b4yn58cB info: e7e5 book move time: 0.2
+ID: b4yn58cB info: b8c6 book move time: 0.2
+ID: b4yn58cB info: g8f6 book move time: 0.2
+ID: b4yn58cB info: f8c5 {'depth': 6, 'score': PovScore(Cp(0), BLACK), 'pv': [Move.from_uci('f8c5')]} time: 1.9666666666666666
+ID: b4yn58cB info: d7d6 {'depth': 6, 'score': PovScore(Cp(+5), BLACK), 'pv': [Move.from_uci('d7d6')]} time: 1.9
+ID: b4yn58cB info: c8e6 {'depth': 7, 'score': PovScore(Cp(+7), BLACK), 'pv': [Move.from_uci('c8e6')]} time: 1.8333333333333333
+ID: b4yn58cB info: d6c5 {'depth': 7, 'score': PovScore(Cp(+7), BLACK), 'pv': [Move.from_uci('d6c5')]} time: 1.7666666666666666
+ID: b4yn58cB info: d8e7 {'depth': 6, 'score': PovScore(Cp(+7), BLACK), 'pv': [Move.from_uci('d8e7')]} time: 1.7
+ID: b4yn58cB info: e8c8 {'depth': 6, 'score': PovScore(Cp(+9), BLACK), 'pv': [Move.from_uci('e8c8')]} time: 1.6666666666666667
+ID: b4yn58cB info: f6g4 {'depth': 6, 'score': PovScore(Cp(+7), BLACK), 'pv': [Move.from_uci('f6g4')]} time: 1.6
+ID: b4yn58cB info: h7h6 {'depth': 6, 'score': PovScore(Cp(+5), BLACK), 'pv': [Move.from_uci('h7h6')]} time: 1.5333333333333334
+ID: b4yn58cB info: g4f2 {'depth': 7, 'score': PovScore(Cp(+233), BLACK), 'pv': [Move.from_uci('g4f2')]} time: 1.5
+ID: b4yn58cB info: f2h1 {'depth': 7, 'score': PovScore(Cp(+238), BLACK), 'pv': [Move.from_uci('f2h1')]} time: 1.4333333333333333
+ID: b4yn58cB info: b7b6 {'depth': 6, 'score': PovScore(Cp(+236), BLACK), 'pv': [Move.from_uci('b7b6')]} time: 1.4
+ID: b4yn58cB info: f7f6 {'depth': 6, 'score': PovScore(Cp(+237), BLACK), 'pv': [Move.from_uci('f7f6')]} time: 1.3333333333333333
+ID: b4yn58cB info: c8b7 {'depth': 6, 'score': PovScore(Cp(+240), BLACK), 'pv': [Move.from_uci('c8b7')]} time: 1.3
+ID: b4yn58cB info: e6h3 {'depth': 6, 'score': PovScore(Cp(+540), BLACK), 'pv': [Move.from_uci('e6h3')]} time: 1.2666666666666666
+ID: b4yn58cB info: e7f7 {'depth': 6, 'score': PovScore(Cp(+540), BLACK), 'pv': [Move.from_uci('e7f7')]} time: 1.2
+ID: b4yn58cB info: h3e6 {'depth': 6, 'score': PovScore(Cp(+542), BLACK), 'pv': [Move.from_uci('h3e6')]} time: 1.1666666666666667
+ID: b4yn58cB info: c6d4 {'depth': 6, 'score': PovScore(Cp(+547), BLACK), 'pv': [Move.from_uci('c6d4')]} time: 1.1333333333333333
+ID: b4yn58cB info: d4b3 {'depth': 7, 'score': PovScore(Cp(+1145), BLACK), 'pv': [Move.from_uci('d4b3')]} time: 1.1
+ID: b4yn58cB info: b3d2 {'depth': 7, 'score': PovScore(Cp(+1207), BLACK), 'pv': [Move.from_uci('b3d2')]} time: 1.0333333333333334
+ID: b4yn58cB info: c5c4 {'depth': 6, 'score': PovScore(Cp(+1212), BLACK), 'pv': [Move.from_uci('c5c4')]} time: 1.0
+ID: b4yn58cB info: c7c6 {'depth': 5, 'score': PovScore(Cp(+1277), BLACK), 'pv': [Move.from_uci('c7c6')]} time: 0.9666666666666667
+2024-01-06 20:49:32.833345 | challenge by smashbrah; ID: ckDA2RU2 - standard - rapid - unrated
+2024-01-06 20:50:12.177953 | challenge by smashbrah; ID: wLWo9h72 - standard - rapid - rated
+Accepted challenge of smashbrah
+{'type': 'gameStart', 'game': {'fullId': 'wLWo9h72bc4h', 'gameId': 'wLWo9h72', 'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'color': 'black', 'lastMove': '', 'source': 'friend', 'status': {'id': 20, 'name': 'started'}, 'variant': {'key': 'standard', 'name': 'Standard'}, 'speed': 'rapid', 'perf': 'rapid', 'rated': True, 'hasMoved': False, 'opponent': {'id': 'smashbrah', 'username': 'smashbrah', 'rating': 1797}, 'isMyTurn': False, 'secondsLeft': 300, 'compat': {'bot': True, 'board': True}, 'id': 'wLWo9h72'}}
+Game started: wLWo9h72
+ID: wLWo9h72 info: c7c6 book move time: 5.0
+ID: wLWo9h72 info: d7d5 book move time: 5.0
+ID: wLWo9h72 info: g7g6 book move time: 5.0
+ID: wLWo9h72 info: f8g7 book move time: 5.0
+ID: wLWo9h72 info: d8b6 book move time: 5.0
+ID: wLWo9h72 info: b6a5 {'depth': 9, 'score': PovScore(Cp(0), BLACK), 'pv': [Move.from_uci('b6a5')]} time: 9.966666666666667
+ID: wLWo9h72 info: d5e4 {'depth': 8, 'score': PovScore(Cp(-3), BLACK), 'pv': [Move.from_uci('d5e4')]} time: 9.8
+ID: wLWo9h72 info: g8f6 {'depth': 7, 'score': PovScore(Cp(+3), BLACK), 'pv': [Move.from_uci('g8f6')]} time: 9.633333333333333
+ID: wLWo9h72 info: c8g4 {'depth': 7, 'score': PovScore(Cp(+1), BLACK), 'pv': [Move.from_uci('c8g4')]} time: 9.466666666666667
+ID: wLWo9h72 info: b8a6 {'depth': 7, 'score': PovScore(Cp(-3), BLACK), 'pv': [Move.from_uci('b8a6')]} time: 9.333333333333334
+ID: wLWo9h72 info: b7b5 {'depth': 7, 'score': PovScore(Cp(0), BLACK), 'pv': [Move.from_uci('b7b5')]} time: 9.166666666666666
+ID: wLWo9h72 info: a6c5 {'depth': 7, 'score': PovScore(Cp(-4), BLACK), 'pv': [Move.from_uci('a6c5')]} time: 9.033333333333333
+ID: wLWo9h72 info: e8c8 {'depth': 7, 'score': PovScore(Cp(-5), BLACK), 'pv': [Move.from_uci('e8c8')]} time: 8.9
+ID: wLWo9h72 info: a5a3 {'depth': 8, 'score': PovScore(Cp(-4), BLACK), 'pv': [Move.from_uci('a5a3')]} time: 8.766666666666667
+ID: wLWo9h72 info: f6d7 {'depth': 7, 'score': PovScore(Cp(-1), BLACK), 'pv': [Move.from_uci('f6d7')]} time: 8.633333333333333
+ID: wLWo9h72 info: d7e5 {'depth': 8, 'score': PovScore(Cp(-4), BLACK), 'pv': [Move.from_uci('d7e5')]} time: 8.5
+ID: wLWo9h72 info: e5d3 {'depth': 9, 'score': PovScore(Cp(+309), BLACK), 'pv': [Move.from_uci('e5d3')]} time: 8.366666666666667
+ID: wLWo9h72 info: g7d4 {'depth': 9, 'score': PovScore(Cp(+400), BLACK), 'pv': [Move.from_uci('g7d4')]} time: 8.266666666666667
+ID: wLWo9h72 info: d8d4 {'depth': 9, 'score': PovScore(Cp(+547), BLACK), 'pv': [Move.from_uci('d8d4')]} time: 8.133333333333333
+ID: wLWo9h72 info: a3c3 {'depth': 8, 'score': PovScore(Cp(+584), BLACK), 'pv': [Move.from_uci('a3c3')]} time: 8.033333333333333
+ID: wLWo9h72 info: g4e2 {'depth': 9, 'score': PovScore(Cp(+598), BLACK), 'pv': [Move.from_uci('g4e2')]} time: 7.933333333333334
+ID: wLWo9h72 info: b5a4 {'depth': 8, 'score': PovScore(Cp(+599), BLACK), 'pv': [Move.from_uci('b5a4')]} time: 7.833333333333333
+ID: wLWo9h72 info: c6d5 {'depth': 8, 'score': PovScore(Cp(+602), BLACK), 'pv': [Move.from_uci('c6d5')]} time: 7.733333333333333
+ID: wLWo9h72 info: c3b4 {'depth': 8, 'score': PovScore(Cp(+598), BLACK), 'pv': [Move.from_uci('c3b4')]} time: 7.633333333333334
+ID: wLWo9h72 info: b4f4 {'depth': 9, 'score': PovScore(Cp(+943), BLACK), 'pv': [Move.from_uci('b4f4')]} time: 7.533333333333333
+2024-01-06 21:07:13.155148 | challenge by smashbrah; ID: MZjfzrgQ - standard - blitz - rated
+Accepted challenge of smashbrah
+{'type': 'gameStart', 'game': {'fullId': 'MZjfzrgQuacz', 'gameId': 'MZjfzrgQ', 'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'color': 'black', 'lastMove': '', 'source': 'friend', 'status': {'id': 20, 'name': 'started'}, 'variant': {'key': 'standard', 'name': 'Standard'}, 'speed': 'blitz', 'perf': 'blitz', 'rated': True, 'hasMoved': False, 'opponent': {'id': 'smashbrah', 'username': 'smashbrah', 'rating': 1852}, 'isMyTurn': False, 'secondsLeft': 300, 'compat': {'bot': True, 'board': True}, 'id': 'MZjfzrgQ'}}
+Game started: MZjfzrgQ
+ID: MZjfzrgQ info: c7c5 book move time: 1.0
+ID: MZjfzrgQ info: b8c6 book move time: 1.0
+ID: MZjfzrgQ info: c5d4 book move time: 1.0
+ID: MZjfzrgQ info: d8c7 book move time: 1.0
+ID: MZjfzrgQ info: e7e6 book move time: 1.0
+ID: MZjfzrgQ info: b7c6 book move time: 1.0
+ID: MZjfzrgQ info: g8f6 book move time: 1.0
+ID: MZjfzrgQ info: h7h5 {'depth': 7, 'score': PovScore(Cp(+3), BLACK), 'pv': [Move.from_uci('h7h5')]} time: 10.366666666666667
+ID: MZjfzrgQ info: a8b8 {'depth': 7, 'score': PovScore(Cp(+4), BLACK), 'pv': [Move.from_uci('a8b8')]} time: 10.1
+ID: MZjfzrgQ info: f8d6 {'depth': 7, 'score': PovScore(Cp(+5), BLACK), 'pv': [Move.from_uci('f8d6')]} time: 9.866666666666667
+ID: MZjfzrgQ info: c7a5 {'depth': 7, 'score': PovScore(Cp(+9), BLACK), 'pv': [Move.from_uci('c7a5')]} time: 9.633333333333333
+ID: MZjfzrgQ info: d6b4 {'depth': 7, 'score': PovScore(Cp(+10), BLACK), 'pv': [Move.from_uci('d6b4')]} time: 9.4
+ID: MZjfzrgQ info: a5e5 {'depth': 8, 'score': PovScore(Cp(+6), BLACK), 'pv': [Move.from_uci('a5e5')]} time: 9.2
+ID: MZjfzrgQ info: b4c5 {'depth': 7, 'score': PovScore(Cp(+7), BLACK), 'pv': [Move.from_uci('b4c5')]} time: 8.966666666666667
+ID: MZjfzrgQ info: c5d6 {'depth': 7, 'score': PovScore(Cp(+5), BLACK), 'pv': [Move.from_uci('c5d6')]} time: 8.766666666666667
+ID: MZjfzrgQ info: c6c5 {'depth': 7, 'score': PovScore(Cp(+14), BLACK), 'pv': [Move.from_uci('c6c5')]} time: 8.566666666666666
+ID: MZjfzrgQ info: c5b4 {'depth': 8, 'score': PovScore(Cp(+74), BLACK), 'pv': [Move.from_uci('c5b4')]} time: 8.4
+ID: MZjfzrgQ info: e5h2 {'depth': 9, 'score': PovScore(Cp(+78), BLACK), 'pv': [Move.from_uci('e5h2')]} time: 8.2
+ID: MZjfzrgQ info: b4c3 {'depth': 8, 'score': PovScore(Cp(+77), BLACK), 'pv': [Move.from_uci('b4c3')]} time: 8.033333333333333
+ID: MZjfzrgQ info: d6c7 {'depth': 8, 'score': PovScore(Cp(+7), BLACK), 'pv': [Move.from_uci('d6c7')]} time: 7.866666666666666
+ID: MZjfzrgQ info: g7f6 {'depth': 8, 'score': PovScore(Cp(+11), BLACK), 'pv': [Move.from_uci('g7f6')]} time: 7.7
+ID: MZjfzrgQ info: h8g8 {'depth': 8, 'score': PovScore(Cp(+83), BLACK), 'pv': [Move.from_uci('h8g8')]} time: 7.533333333333333
+ID: MZjfzrgQ info: c7e5 {'depth': 8, 'score': PovScore(Cp(+447), BLACK), 'pv': [Move.from_uci('c7e5')]} time: 7.366666666666666
+ID: MZjfzrgQ info: e5a1 {'depth': 8, 'score': PovScore(Cp(+461), BLACK), 'pv': [Move.from_uci('e5a1')]} time: 7.233333333333333
+ID: MZjfzrgQ info: h2h1 {'depth': 8, 'score': PovScore(Cp(+610), BLACK), 'pv': [Move.from_uci('h2h1')]} time: 7.066666666666666
+ID: MZjfzrgQ info: b8b2 {'depth': 9, 'score': PovScore(Cp(+626), BLACK), 'pv': [Move.from_uci('b8b2')]} time: 6.933333333333334
+ID: MZjfzrgQ info: h1a1 {'depth': 9, 'score': PovScore(Cp(+700), BLACK), 'pv': [Move.from_uci('h1a1')]} time: 6.8
+ID: MZjfzrgQ info: b2a2 {'depth': 8, 'score': PovScore(Cp(+689), BLACK), 'pv': [Move.from_uci('b2a2')]} time: 6.666666666666667
+ID: MZjfzrgQ info: g8g2 {'depth': 8, 'score': PovScore(Cp(+845), BLACK), 'pv': [Move.from_uci('g8g2')]} time: 6.533333333333333
+ID: MZjfzrgQ info: a1c3 {'depth': 8, 'score': PovScore(Cp(+854), BLACK), 'pv': [Move.from_uci('a1c3')]} time: 6.433333333333334
+ID: MZjfzrgQ info: g2g1 {'depth': 8, 'score': PovScore(Cp(+1050), BLACK), 'pv': [Move.from_uci('g2g1')]} time: 6.3
+2024-01-06 21:22:43.311972 | challenge by smashbrah; ID: Lzgh3CGa - standard - rapid - rated
+Accepted challenge of smashbrah
+{'type': 'gameStart', 'game': {'fullId': 'Lzgh3CGaTtsg', 'gameId': 'Lzgh3CGa', 'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'color': 'black', 'lastMove': '', 'source': 'friend', 'status': {'id': 20, 'name': 'started'}, 'variant': {'key': 'standard', 'name': 'Standard'}, 'speed': 'rapid', 'perf': 'rapid', 'rated': True, 'hasMoved': False, 'opponent': {'id': 'smashbrah', 'username': 'smashbrah', 'rating': 1787}, 'isMyTurn': False, 'secondsLeft': 900, 'compat': {'bot': True, 'board': True}, 'id': 'Lzgh3CGa'}}
+Game started: Lzgh3CGa
+ID: Lzgh3CGa info: d7d6 book move time: 5.0
+ID: Lzgh3CGa info: g8f6 book move time: 5.0
+ID: Lzgh3CGa info: g7g6 book move time: 5.0
+ID: Lzgh3CGa info: f8g7 book move time: 5.0
+ID: Lzgh3CGa info: e8g8 book move time: 5.0
+ID: Lzgh3CGa info: a7a6 book move time: 5.0
+ID: Lzgh3CGa info: b7b5 book move time: 5.0
+ID: Lzgh3CGa info: b5b4 {'depth': 7, 'score': PovScore(Cp(-10), BLACK), 'pv': [Move.from_uci('b5b4')]} time: 30.966666666666665
+ID: Lzgh3CGa info: a6a5 {'depth': 8, 'score': PovScore(Cp(-10), BLACK), 'pv': [Move.from_uci('a6a5')]} time: 30.266666666666666
+ID: Lzgh3CGa info: b8c6 {'depth': 9, 'score': PovScore(Cp(-2), BLACK), 'pv': [Move.from_uci('b8c6')]} time: 29.566666666666666
+ID: Lzgh3CGa info: g8g7 {'depth': 8, 'score': PovScore(Cp(-10), BLACK), 'pv': [Move.from_uci('g8g7')]} time: 28.933333333333334
+ID: Lzgh3CGa info: c6e5 {'depth': 8, 'score': PovScore(Cp(-9), BLACK), 'pv': [Move.from_uci('c6e5')]} time: 28.266666666666666
+ID: Lzgh3CGa info: d6e5 {'depth': 8, 'score': PovScore(Cp(-13), BLACK), 'pv': [Move.from_uci('d6e5')]} time: 27.666666666666668
+ID: Lzgh3CGa info: d8d6 {'depth': 9, 'score': PovScore(Cp(+5), BLACK), 'pv': [Move.from_uci('d8d6')]} time: 27.066666666666666
+ID: Lzgh3CGa info: c8d7 {'depth': 8, 'score': PovScore(Cp(+2), BLACK), 'pv': [Move.from_uci('c8d7')]} time: 26.5
+ID: Lzgh3CGa info: e5f4 {'depth': 9, 'score': PovScore(Cp(+5), BLACK), 'pv': [Move.from_uci('e5f4')]} time: 25.933333333333334
+ID: Lzgh3CGa info: b4a3 {'depth': 9, 'score': PovScore(Cp(+4), BLACK), 'pv': [Move.from_uci('b4a3')]} time: 25.4
+ID: Lzgh3CGa info: e7e5 {'depth': 8, 'score': PovScore(Cp(-1), BLACK), 'pv': [Move.from_uci('e7e5')]} time: 24.9
+ID: Lzgh3CGa info: f8b8 {'depth': 8, 'score': PovScore(Cp(+6), BLACK), 'pv': [Move.from_uci('f8b8')]} time: 24.4
+ID: Lzgh3CGa info: d6b6 {'depth': 8, 'score': PovScore(Cp(+4), BLACK), 'pv': [Move.from_uci('d6b6')]} time: 23.9
+ID: Lzgh3CGa info: b6f2 {'depth': 9, 'score': PovScore(Cp(+4), BLACK), 'pv': [Move.from_uci('b6f2')]} time: 23.433333333333334
+ID: Lzgh3CGa info: a5a4 {'depth': 9, 'score': PovScore(Cp(+5), BLACK), 'pv': [Move.from_uci('a5a4')]} time: 22.966666666666665
+ID: Lzgh3CGa info: d7a4 {'depth': 11, 'score': PovScore(Cp(+159), BLACK), 'pv': [Move.from_uci('d7a4')]} time: 22.533333333333335
+ID: Lzgh3CGa info: a8a4 {'depth': 9, 'score': PovScore(Cp(+159), BLACK), 'pv': [Move.from_uci('a8a4')]} time: 22.133333333333333
+ID: Lzgh3CGa info: f6e4 {'depth': 9, 'score': PovScore(Cp(+237), BLACK), 'pv': [Move.from_uci('f6e4')]} time: 21.7
+ID: Lzgh3CGa info: a4e4 {'depth': 9, 'score': PovScore(Cp(+243), BLACK), 'pv': [Move.from_uci('a4e4')]} time: 21.3
+ID: Lzgh3CGa info: e4d4 {'depth': 10, 'score': PovScore(Cp(+311), BLACK), 'pv': [Move.from_uci('e4d4')]} time: 20.933333333333334
+ID: Lzgh3CGa info: b8b2 {'depth': 9, 'score': PovScore(Cp(+314), BLACK), 'pv': [Move.from_uci('b8b2')]} time: 20.566666666666666
+ID: Lzgh3CGa info: f7f6 {'depth': 10, 'score': PovScore(Cp(+315), BLACK), 'pv': [Move.from_uci('f7f6')]} time: 20.2
+ID: Lzgh3CGa info: d4c4 {'depth': 9, 'score': PovScore(Cp(+322), BLACK), 'pv': [Move.from_uci('d4c4')]} time: 19.866666666666667
+ID: Lzgh3CGa info: b2c2 {'depth': 9, 'score': PovScore(Cp(+345), BLACK), 'pv': [Move.from_uci('b2c2')]} time: 19.533333333333335
+ID: Lzgh3CGa info: h7h6 {'depth': 9, 'score': PovScore(Cp(+398), BLACK), 'pv': [Move.from_uci('h7h6')]} time: 19.2
+ID: Lzgh3CGa info: f6f5 {'depth': 10, 'score': PovScore(Cp(+543), BLACK), 'pv': [Move.from_uci('f6f5')]} time: 18.9
+ID: Lzgh3CGa info: f5e4 {'depth': 10, 'score': PovScore(Cp(+542), BLACK), 'pv': [Move.from_uci('f5e4')]} time: 18.6
+ID: Lzgh3CGa info: c2c3 {'depth': 10, 'score': PovScore(Cp(+183), BLACK), 'pv': [Move.from_uci('c2c3')]} time: 18.3
+ID: Lzgh3CGa info: c4e4 {'depth': 11, 'score': PovScore(Cp(+702), BLACK), 'pv': [Move.from_uci('c4e4')]} time: 18.0
+ID: Lzgh3CGa info: c3g3 {'depth': 10, 'score': PovScore(Cp(+702), BLACK), 'pv': [Move.from_uci('c3g3')]} time: 17.733333333333334
+ID: Lzgh3CGa info: e4d4 {'depth': 12, 'score': PovScore(Cp(+704), BLACK), 'pv': [Move.from_uci('e4d4')]} time: 17.466666666666665
+ID: Lzgh3CGa info: e5d4 {'depth': 12, 'score': PovScore(Cp(+779), BLACK), 'pv': [Move.from_uci('e5d4')]} time: 17.233333333333334
+ID: Lzgh3CGa info: c7c5 {'depth': 11, 'score': PovScore(Cp(+784), BLACK), 'pv': [Move.from_uci('c7c5')]} time: 16.966666666666665
+ID: Lzgh3CGa info: c5c4 {'depth': 12, 'score': PovScore(Cp(+784), BLACK), 'pv': [Move.from_uci('c5c4')]} time: 16.733333333333334
+ID: Lzgh3CGa info: c4c3 {'depth': 13, 'score': PovScore(Cp(+1000000), BLACK), 'pv': [Move.from_uci('c4c3')]} time: 16.5
+ID: Lzgh3CGa info: g3e3 {'depth': 14, 'score': PovScore(Cp(+1000000), BLACK), 'pv': [Move.from_uci('g3e3')]} time: 16.3
+ID: Lzgh3CGa info: c3c2 {'depth': 16, 'score': PovScore(Cp(+1000000), BLACK), 'pv': [Move.from_uci('c3c2')]} time: 16.066666666666666
+ID: Lzgh3CGa info: c2c1q {'depth': 33, 'score': PovScore(Cp(+1000000), BLACK), 'pv': [Move.from_uci('c2c1q')]} time: 15.866666666666667
+ID: Lzgh3CGa info: c1d2 {'depth': 99, 'score': PovScore(Cp(+1000000), BLACK), 'pv': [Move.from_uci('c1d2')]} time: 15.666666666666666
+Restarting afer berserk ApiError:  HTTP 400: Bad Request: {'error': 'Not your turn, or game already over'}
+2024-01-06 22:03:22.321697 | challenge by smashbrah; ID: HbeD1OUz - standard - rapid - rated
+Accepted challenge of smashbrah
+{'type': 'gameStart', 'game': {'fullId': 'HbeD1OUzarYx', 'gameId': 'HbeD1OUz', 'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'color': 'black', 'lastMove': '', 'source': 'friend', 'status': {'id': 20, 'name': 'started'}, 'variant': {'key': 'standard', 'name': 'Standard'}, 'speed': 'rapid', 'perf': 'rapid', 'rated': True, 'hasMoved': False, 'opponent': {'id': 'smashbrah', 'username': 'smashbrah', 'rating': 1779}, 'isMyTurn': False, 'secondsLeft': 300, 'compat': {'bot': True, 'board': True}, 'id': 'HbeD1OUz'}}
+Game started: HbeD1OUz
+ID: HbeD1OUz info: e7e6 book move time: 5.0
+ID: HbeD1OUz info: d7d5 book move time: 5.0
+ID: HbeD1OUz info: g8f6 book move time: 5.0
+ID: HbeD1OUz info: f6d7 book move time: 5.0
+ID: HbeD1OUz info: c7c5 book move time: 5.0
+ID: HbeD1OUz info: b8c6 book move time: 5.0
+ID: HbeD1OUz info: d8b6 book move time: 5.0
+ID: HbeD1OUz info: b6a5 book move time: 5.0
+ID: HbeD1OUz info: c5c4 book move time: 5.0
+ID: HbeD1OUz info: a5c7 book move time: 5.0
+ID: HbeD1OUz info: f8e7 book move time: 5.0
+ID: HbeD1OUz info: e8g8 book move time: 5.0
+ID: HbeD1OUz info: a7a5 {'depth': 7, 'score': PovScore(Cp(+2), BLACK), 'pv': [Move.from_uci('a7a5')]} time: 9.966666666666667
+ID: HbeD1OUz info: a5b4 {'depth': 8, 'score': PovScore(Cp(+152), BLACK), 'pv': [Move.from_uci('a5b4')]} time: 9.8
+ID: HbeD1OUz info: d7b6 {'depth': 9, 'score': PovScore(Cp(+219), BLACK), 'pv': [Move.from_uci('d7b6')]} time: 9.633333333333333
+ID: HbeD1OUz info: b6a4 {'depth': 9, 'score': PovScore(Cp(+297), BLACK), 'pv': [Move.from_uci('b6a4')]} time: 9.466666666666667
+ID: HbeD1OUz info: c7a5 {'depth': 8, 'score': PovScore(Cp(+301), BLACK), 'pv': [Move.from_uci('c7a5')]} time: 9.3
+ID: HbeD1OUz info: b4c3 {'depth': 8, 'score': PovScore(Cp(+444), BLACK), 'pv': [Move.from_uci('b4c3')]} time: 9.166666666666666
+ID: HbeD1OUz info: b7b6 {'depth': 8, 'score': PovScore(Cp(+523), BLACK), 'pv': [Move.from_uci('b7b6')]} time: 9.033333333333333
+ID: HbeD1OUz info: c4b3 {'depth': 8, 'score': PovScore(Cp(+523), BLACK), 'pv': [Move.from_uci('c4b3')]} time: 8.866666666666667
+ID: HbeD1OUz info: c3c2 {'depth': 9, 'score': PovScore(Cp(+598), BLACK), 'pv': [Move.from_uci('c3c2')]} time: 8.733333333333333
+ID: HbeD1OUz info: a5c3 {'depth': 9, 'score': PovScore(Cp(+599), BLACK), 'pv': [Move.from_uci('a5c3')]} time: 8.633333333333333
+ID: HbeD1OUz info: c3b3 {'depth': 8, 'score': PovScore(Cp(+663), BLACK), 'pv': [Move.from_uci('c3b3')]} time: 8.5
+ID: HbeD1OUz info: c6d4 {'depth': 9, 'score': PovScore(Cp(+684), BLACK), 'pv': [Move.from_uci('c6d4')]} time: 8.366666666666667
+ID: HbeD1OUz info: b3b2 {'depth': 8, 'score': PovScore(Cp(+684), BLACK), 'pv': [Move.from_uci('b3b2')]} time: 8.266666666666667
+ID: HbeD1OUz info: d4c2 {'depth': 9, 'score': PovScore(Cp(+940), BLACK), 'pv': [Move.from_uci('d4c2')]} time: 8.133333333333333
+ID: HbeD1OUz info: b2d4 {'depth': 10, 'score': PovScore(Cp(+990), BLACK), 'pv': [Move.from_uci('b2d4')]} time: 8.033333333333333
+2024-01-06 22:15:48.371717 | challenge by smashbrah; ID: RLg79r4f - standard - rapid - rated
+Accepted challenge of smashbrah
+{'type': 'gameStart', 'game': {'fullId': 'RLg79r4fPECj', 'gameId': 'RLg79r4f', 'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'color': 'black', 'lastMove': '', 'source': 'friend', 'status': {'id': 20, 'name': 'started'}, 'variant': {'key': 'standard', 'name': 'Standard'}, 'speed': 'rapid', 'perf': 'rapid', 'rated': True, 'hasMoved': False, 'opponent': {'id': 'smashbrah', 'username': 'smashbrah', 'rating': 1772}, 'isMyTurn': False, 'secondsLeft': 300, 'compat': {'bot': True, 'board': True}, 'id': 'RLg79r4f'}}
+Game started: RLg79r4f
+ID: RLg79r4f info: d7d5 book move time: 5.0
+ID: RLg79r4f info: b8c6 {'depth': 8, 'score': PovScore(Cp(+2), BLACK), 'pv': [Move.from_uci('b8c6')]} time: 10.0
+ID: RLg79r4f info: e7e5 {'depth': 7, 'score': PovScore(Cp(+9), BLACK), 'pv': [Move.from_uci('e7e5')]} time: 9.8
+ID: RLg79r4f info: d5d4 {'depth': 7, 'score': PovScore(Cp(+12), BLACK), 'pv': [Move.from_uci('d5d4')]} time: 9.633333333333333
+ID: RLg79r4f info: g8f6 {'depth': 7, 'score': PovScore(Cp(+13), BLACK), 'pv': [Move.from_uci('g8f6')]} time: 9.5
+ID: RLg79r4f info: g7g5 {'depth': 7, 'score': PovScore(Cp(+12), BLACK), 'pv': [Move.from_uci('g7g5')]} time: 9.333333333333334
+ID: RLg79r4f info: c8e6 {'depth': 7, 'score': PovScore(Cp(+13), BLACK), 'pv': [Move.from_uci('c8e6')]} time: 9.166666666666666
+ID: RLg79r4f info: a7a5 {'depth': 6, 'score': PovScore(Cp(+10), BLACK), 'pv': [Move.from_uci('a7a5')]} time: 9.033333333333333
+ID: RLg79r4f info: a5a4 {'depth': 6, 'score': PovScore(Cp(+11), BLACK), 'pv': [Move.from_uci('a5a4')]} time: 8.9
+ID: RLg79r4f info: a4a3 {'depth': 7, 'score': PovScore(Cp(+16), BLACK), 'pv': [Move.from_uci('a4a3')]} time: 8.766666666666667
+ID: RLg79r4f info: f8b4 {'depth': 6, 'score': PovScore(Cp(+14), BLACK), 'pv': [Move.from_uci('f8b4')]} time: 8.633333333333333
+ID: RLg79r4f info: h7h6 {'depth': 6, 'score': PovScore(Cp(+15), BLACK), 'pv': [Move.from_uci('h7h6')]} time: 8.5
+ID: RLg79r4f info: b7b5 {'depth': 7, 'score': PovScore(Cp(+19), BLACK), 'pv': [Move.from_uci('b7b5')]} time: 8.366666666666667
+ID: RLg79r4f info: d8d6 {'depth': 6, 'score': PovScore(Cp(+18), BLACK), 'pv': [Move.from_uci('d8d6')]} time: 8.266666666666667
+ID: RLg79r4f info: e8e7 {'depth': 6, 'score': PovScore(Cp(+23), BLACK), 'pv': [Move.from_uci('e8e7')]} time: 8.166666666666666
+ID: RLg79r4f info: h6h5 {'depth': 6, 'score': PovScore(Cp(+22), BLACK), 'pv': [Move.from_uci('h6h5')]} time: 8.033333333333333
+ID: RLg79r4f info: h8g8 {'depth': 7, 'score': PovScore(Cp(+21), BLACK), 'pv': [Move.from_uci('h8g8')]} time: 7.933333333333334
+ID: RLg79r4f info: h5h4 {'depth': 7, 'score': PovScore(Cp(+20), BLACK), 'pv': [Move.from_uci('h5h4')]} time: 7.833333333333333
+ID: RLg79r4f info: d6c5 {'depth': 7, 'score': PovScore(Cp(+20), BLACK), 'pv': [Move.from_uci('d6c5')]} time: 7.733333333333333
+ID: RLg79r4f info: b4d2 {'depth': 8, 'score': PovScore(Cp(+94), BLACK), 'pv': [Move.from_uci('b4d2')]} time: 7.633333333333334
+ID: RLg79r4f info: c6b4 {'depth': 7, 'score': PovScore(Cp(+81), BLACK), 'pv': [Move.from_uci('c6b4')]} time: 7.533333333333333
+ID: RLg79r4f info: d4c3 {'depth': 8, 'score': PovScore(Cp(+328), BLACK), 'pv': [Move.from_uci('d4c3')]} time: 7.466666666666667
+2024-01-06 23:22:31.472922 | challenge by infectedchess; ID: xVG1SplB - standard - rapid - rated
+Accepted challenge of infectedchess
+{'type': 'gameStart', 'game': {'fullId': 'xVG1SplBeCOl', 'gameId': 'xVG1SplB', 'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'color': 'black', 'lastMove': '', 'source': 'friend', 'status': {'id': 20, 'name': 'started'}, 'variant': {'key': 'standard', 'name': 'Standard'}, 'speed': 'rapid', 'perf': 'rapid', 'rated': True, 'hasMoved': False, 'opponent': {'id': 'infectedchess', 'username': 'infectedChess', 'rating': 1507}, 'isMyTurn': False, 'secondsLeft': 900, 'compat': {'bot': True, 'board': True}, 'id': 'xVG1SplB'}}
+Game started: xVG1SplB
+ID: xVG1SplB info: c7c5 book move time: 5.0
+ID: xVG1SplB info: e7e6 book move time: 5.0
+ID: xVG1SplB info: c5d4 book move time: 5.0
+ID: xVG1SplB info: a7a6 book move time: 5.0
+ID: xVG1SplB info: f8c5 book move time: 5.0
+ID: xVG1SplB info: c5a7 book move time: 5.0
+ID: xVG1SplB info: b8c6 book move time: 5.0
+ID: xVG1SplB info: g8f6 book move time: 5.0
+ID: xVG1SplB info: b7b5 {'depth': 8, 'score': PovScore(Cp(-6), BLACK), 'pv': [Move.from_uci('b7b5')]} time: 31.133333333333333
+ID: xVG1SplB info: c6e5 {'depth': 8, 'score': PovScore(Cp(-3), BLACK), 'pv': [Move.from_uci('c6e5')]} time: 30.4
+ID: xVG1SplB info: c8b7 {'depth': 8, 'score': PovScore(Cp(-1), BLACK), 'pv': [Move.from_uci('c8b7')]} time: 29.733333333333334
+ID: xVG1SplB info: e5d3 {'depth': 9, 'score': PovScore(Cp(+4), BLACK), 'pv': [Move.from_uci('e5d3')]} time: 29.066666666666666
+ID: xVG1SplB info: h7h6 {'depth': 8, 'score': PovScore(Cp(-1), BLACK), 'pv': [Move.from_uci('h7h6')]} time: 28.433333333333334
+ID: xVG1SplB info: b5b4 {'depth': 8, 'score': PovScore(Cp(-2), BLACK), 'pv': [Move.from_uci('b5b4')]} time: 27.8
+ID: xVG1SplB info: b4c3 {'depth': 9, 'score': PovScore(Cp(+22), BLACK), 'pv': [Move.from_uci('b4c3')]} time: 27.2
+ID: xVG1SplB info: g7f6 {'depth': 9, 'score': PovScore(Cp(+20), BLACK), 'pv': [Move.from_uci('g7f6')]} time: 26.633333333333333
+ID: xVG1SplB info: h8g8 {'depth': 7, 'score': PovScore(Cp(+20), BLACK), 'pv': [Move.from_uci('h8g8')]} time: 26.066666666666666
+ID: xVG1SplB info: d8c7 {'depth': 7, 'score': PovScore(Cp(+16), BLACK), 'pv': [Move.from_uci('d8c7')]} time: 25.533333333333335
+ID: xVG1SplB info: h6h5 {'depth': 7, 'score': PovScore(Cp(+19), BLACK), 'pv': [Move.from_uci('h6h5')]} time: 25.0
+ID: xVG1SplB info: g8g3 {'depth': 9, 'score': PovScore(Cp(+575), BLACK), 'pv': [Move.from_uci('g8g3')]} time: 24.5
+ID: xVG1SplB info: b7f3 {'depth': 9, 'score': PovScore(Cp(+627), BLACK), 'pv': [Move.from_uci('b7f3')]} time: 24.0
+ID: xVG1SplB info: g3f3 {'depth': 9, 'score': PovScore(Cp(+726), BLACK), 'pv': [Move.from_uci('g3f3')]} time: 23.533333333333335
+ID: xVG1SplB info: c7f4 {'depth': 10, 'score': PovScore(Cp(+1143), BLACK), 'pv': [Move.from_uci('c7f4')]} time: 23.066666666666666
+ID: xVG1SplB info: f4h4 {'depth': 9, 'score': PovScore(Cp(+1222), BLACK), 'pv': [Move.from_uci('f4h4')]} time: 22.633333333333333
+ID: xVG1SplB info: f3h3 {'depth': 14, 'score': PovScore(Cp(+1000000), BLACK), 'pv': [Move.from_uci('f3h3')]} time: 22.2
+ID: xVG1SplB info: h4h3 {'depth': 99, 'score': PovScore(Cp(+1000000), BLACK), 'pv': [Move.from_uci('h4h3')]} time: 21.8
+2024-01-06 23:47:45.967627 | challenge by infectedchess; ID: LbEpqCox - standard - rapid - rated
+Accepted challenge of infectedchess
+{'type': 'gameStart', 'game': {'fullId': 'LbEpqCoxlPwu', 'gameId': 'LbEpqCox', 'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'color': 'black', 'lastMove': '', 'source': 'friend', 'status': {'id': 20, 'name': 'started'}, 'variant': {'key': 'standard', 'name': 'Standard'}, 'speed': 'rapid', 'perf': 'rapid', 'rated': True, 'hasMoved': False, 'opponent': {'id': 'infectedchess', 'username': 'infectedChess', 'rating': 1507}, 'isMyTurn': False, 'secondsLeft': 900, 'compat': {'bot': True, 'board': True}, 'id': 'LbEpqCox'}}
+Game started: LbEpqCox
+ID: LbEpqCox info: e7e5 book move time: 5.0
+ID: LbEpqCox info: b8c6 book move time: 5.0
+ID: LbEpqCox info: g8f6 book move time: 5.0
+ID: LbEpqCox info: d7d5 book move time: 5.0
+ID: LbEpqCox info: f6d5 {'depth': 9, 'score': PovScore(Cp(+237), BLACK), 'pv': [Move.from_uci('f6d5')]} time: 30.466666666666665
+2024-01-06 23:49:19.655941 | challenge by infectedchess; ID: Y6bC7hxj - standard - rapid - rated
+Accepted challenge of infectedchess
+{'type': 'gameStart', 'game': {'fullId': 'Y6bC7hxjuGzV', 'gameId': 'Y6bC7hxj', 'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'color': 'white', 'lastMove': '', 'source': 'friend', 'status': {'id': 20, 'name': 'started'}, 'variant': {'key': 'standard', 'name': 'Standard'}, 'speed': 'rapid', 'perf': 'rapid', 'rated': True, 'hasMoved': False, 'opponent': {'id': 'infectedchess', 'username': 'infectedChess', 'rating': 1506}, 'isMyTurn': True, 'secondsLeft': 900, 'compat': {'bot': True, 'board': True}, 'id': 'Y6bC7hxj'}}
+Game started: Y6bC7hxj
+ID: Y6bC7hxj info: e2e4 book move time: 5.0
+ID: Y6bC7hxj info: g1f3 book move time: 5.0
+ID: Y6bC7hxj info: f1b5 book move time: 5.0
+ID: Y6bC7hxj info: b1c3 book move time: 5.0
+ID: Y6bC7hxj info: b5c4 {'depth': 8, 'score': PovScore(Cp(+3), WHITE), 'pv': [Move.from_uci('b5c4')]} time: 30.466666666666665
+ID: Y6bC7hxj info: e1g1 {'depth': 7, 'score': PovScore(Cp(+6), WHITE), 'pv': [Move.from_uci('e1g1')]} time: 29.8
+ID: Y6bC7hxj info: b2b3 {'depth': 8, 'score': PovScore(Cp(+7), WHITE), 'pv': [Move.from_uci('b2b3')]} time: 29.133333333333333
+ID: Y6bC7hxj info: c1b2 {'depth': 8, 'score': PovScore(Cp(+7), WHITE), 'pv': [Move.from_uci('c1b2')]} time: 28.466666666666665
+ID: Y6bC7hxj info: d1e2 {'depth': 7, 'score': PovScore(Cp(+8), WHITE), 'pv': [Move.from_uci('d1e2')]} time: 27.866666666666667
+ID: Y6bC7hxj info: e4e5 {'depth': 8, 'score': PovScore(Cp(+9), WHITE), 'pv': [Move.from_uci('e4e5')]} time: 27.266666666666666
+ID: Y6bC7hxj info: c3a4 {'depth': 7, 'score': PovScore(Cp(+11), WHITE), 'pv': [Move.from_uci('c3a4')]} time: 26.666666666666668
+ID: Y6bC7hxj info: c4d3 {'depth': 8, 'score': PovScore(Cp(+4), WHITE), 'pv': [Move.from_uci('c4d3')]} time: 26.1
+ID: Y6bC7hxj info: a4c3 {'depth': 8, 'score': PovScore(Cp(+1), WHITE), 'pv': [Move.from_uci('a4c3')]} time: 25.566666666666666
+ID: Y6bC7hxj info: e2e3 {'depth': 8, 'score': PovScore(Cp(+7), WHITE), 'pv': [Move.from_uci('e2e3')]} time: 25.033333333333335
+ID: Y6bC7hxj info: f3d4 {'depth': 9, 'score': PovScore(Cp(+13), WHITE), 'pv': [Move.from_uci('f3d4')]} time: 24.533333333333335
+ID: Y6bC7hxj info: e3d4 {'depth': 9, 'score': PovScore(Cp(+10), WHITE), 'pv': [Move.from_uci('e3d4')]} time: 24.066666666666666
+ID: Y6bC7hxj info: d4e5 {'depth': 8, 'score': PovScore(Cp(+5), WHITE), 'pv': [Move.from_uci('d4e5')]} time: 23.566666666666666
+ID: Y6bC7hxj info: b2a3 {'depth': 8, 'score': PovScore(Cp(+5), WHITE), 'pv': [Move.from_uci('b2a3')]} time: 23.133333333333333
+ID: Y6bC7hxj info: a3d6 {'depth': 9, 'score': PovScore(Cp(+11), WHITE), 'pv': [Move.from_uci('a3d6')]} time: 22.666666666666668
+ID: Y6bC7hxj info: a2a4 {'depth': 9, 'score': PovScore(Cp(+7), WHITE), 'pv': [Move.from_uci('a2a4')]} time: 22.233333333333334
+ID: Y6bC7hxj info: c3e4 {'depth': 10, 'score': PovScore(Cp(+2), WHITE), 'pv': [Move.from_uci('c3e4')]} time: 21.833333333333332
+ID: Y6bC7hxj info: d3e4 {'depth': 10, 'score': PovScore(Cp(0), WHITE), 'pv': [Move.from_uci('d3e4')]} time: 21.433333333333334
+ID: Y6bC7hxj info: e4d3 {'depth': 9, 'score': PovScore(Cp(+3), WHITE), 'pv': [Move.from_uci('e4d3')]} time: 21.066666666666666
+ID: Y6bC7hxj info: f2f4 {'depth': 9, 'score': PovScore(Cp(+1), WHITE), 'pv': [Move.from_uci('f2f4')]} time: 20.666666666666668
+ID: Y6bC7hxj info: d3e2 {'depth': 9, 'score': PovScore(Cp(+1), WHITE), 'pv': [Move.from_uci('d3e2')]} time: 20.3
+ID: Y6bC7hxj info: c2c3 {'depth': 9, 'score': PovScore(Cp(0), WHITE), 'pv': [Move.from_uci('c2c3')]} time: 19.966666666666665
+ID: Y6bC7hxj info: e2a6 {'depth': 11, 'score': PovScore(Cp(+6), WHITE), 'pv': [Move.from_uci('e2a6')]} time: 19.633333333333333
+ID: Y6bC7hxj info: c3b4 {'depth': 10, 'score': PovScore(Cp(+3), WHITE), 'pv': [Move.from_uci('c3b4')]} time: 19.3
+ID: Y6bC7hxj info: a1c1 {'depth': 9, 'score': PovScore(Cp(+6), WHITE), 'pv': [Move.from_uci('a1c1')]} time: 19.0
+ID: Y6bC7hxj info: c1c5 {'depth': 9, 'score': PovScore(Cp(+75), WHITE), 'pv': [Move.from_uci('c1c5')]} time: 18.666666666666668
+ID: Y6bC7hxj info: c5b5 {'depth': 9, 'score': PovScore(Cp(+77), WHITE), 'pv': [Move.from_uci('c5b5')]} time: 18.4
+ID: Y6bC7hxj info: b5b4 {'depth': 10, 'score': PovScore(Cp(+77), WHITE), 'pv': [Move.from_uci('b5b4')]} time: 18.1
+ID: Y6bC7hxj info: d2e3 {'depth': 10, 'score': PovScore(Cp(+155), WHITE), 'pv': [Move.from_uci('d2e3')]} time: 17.833333333333332
+ID: Y6bC7hxj info: f1d1 {'depth': 9, 'score': PovScore(Cp(+158), WHITE), 'pv': [Move.from_uci('f1d1')]} time: 17.566666666666666
+ID: Y6bC7hxj info: b4c4 {'depth': 9, 'score': PovScore(Cp(+160), WHITE), 'pv': [Move.from_uci('b4c4')]} time: 17.3
+ID: Y6bC7hxj info: c4c3 {'depth': 9, 'score': PovScore(Cp(+160), WHITE), 'pv': [Move.from_uci('c4c3')]} time: 17.066666666666666
+ID: Y6bC7hxj info: c3d3 {'depth': 11, 'score': PovScore(Cp(+160), WHITE), 'pv': [Move.from_uci('c3d3')]} time: 16.8
+ID: Y6bC7hxj info: g1f2 {'depth': 10, 'score': PovScore(Cp(+151), WHITE), 'pv': [Move.from_uci('g1f2')]} time: 16.566666666666666
+ID: Y6bC7hxj info: d1d2 {'depth': 10, 'score': PovScore(Cp(+153), WHITE), 'pv': [Move.from_uci('d1d2')]} time: 16.366666666666667
+ID: Y6bC7hxj info: d2d8 {'depth': 10, 'score': PovScore(Cp(+151), WHITE), 'pv': [Move.from_uci('d2d8')]} time: 16.133333333333333
+ID: Y6bC7hxj info: d8d7 {'depth': 10, 'score': PovScore(Cp(+153), WHITE), 'pv': [Move.from_uci('d8d7')]} time: 15.933333333333334
+ID: Y6bC7hxj info: d7a7 {'depth': 10, 'score': PovScore(Cp(+153), WHITE), 'pv': [Move.from_uci('d7a7')]} time: 15.733333333333333
+ID: Y6bC7hxj info: a7a8 {'depth': 11, 'score': PovScore(Cp(+187), WHITE), 'pv': [Move.from_uci('a7a8')]} time: 15.533333333333333
+ID: Y6bC7hxj info: a8a7 {'depth': 11, 'score': PovScore(Cp(+185), WHITE), 'pv': [Move.from_uci('a8a7')]} time: 15.333333333333334
+ID: Y6bC7hxj info: a7a8 {'depth': 11, 'score': PovScore(Cp(+187), WHITE), 'pv': [Move.from_uci('a7a8')]} time: 15.166666666666666
+ID: Y6bC7hxj info: a8a7 {'depth': 11, 'score': PovScore(Cp(+185), WHITE), 'pv': [Move.from_uci('a8a7')]} time: 14.966666666666667
+Restarting afer berserk ApiError:  HTTP 400: Bad Request: {'error': 'Not your turn, or game already over'}
+2024-01-07 00:37:57.650744 | challenge by smashbrah; ID: ZfRz9Yiu - standard - rapid - rated
+Accepted challenge of smashbrah
+{'type': 'gameStart', 'game': {'fullId': 'ZfRz9YiuxFvd', 'gameId': 'ZfRz9Yiu', 'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'color': 'black', 'lastMove': '', 'source': 'friend', 'status': {'id': 20, 'name': 'started'}, 'variant': {'key': 'standard', 'name': 'Standard'}, 'speed': 'rapid', 'perf': 'rapid', 'rated': True, 'hasMoved': False, 'opponent': {'id': 'smashbrah', 'username': 'smashbrah', 'rating': 1553}, 'isMyTurn': False, 'secondsLeft': 600, 'compat': {'bot': True, 'board': True}, 'id': 'ZfRz9Yiu'}}
+Game started: ZfRz9Yiu
+ID: ZfRz9Yiu info: e7e5 book move time: 5.0
+ID: ZfRz9Yiu info: b8c6 book move time: 5.0
+ID: ZfRz9Yiu info: f8c5 book move time: 5.0
+ID: ZfRz9Yiu info: c5b6 book move time: 5.0
+ID: ZfRz9Yiu info: d8e7 {'depth': 8, 'score': PovScore(Cp(-8), BLACK), 'pv': [Move.from_uci('d8e7')]} time: 19.966666666666665
+ID: ZfRz9Yiu info: e5d4 {'depth': 8, 'score': PovScore(Cp(-7), BLACK), 'pv': [Move.from_uci('e5d4')]} time: 19.466666666666665
+ID: ZfRz9Yiu info: c6a5 {'depth': 7, 'score': PovScore(Cp(-5), BLACK), 'pv': [Move.from_uci('c6a5')]} time: 19.0
+ID: ZfRz9Yiu info: a5c6 {'depth': 8, 'score': PovScore(Cp(-13), BLACK), 'pv': [Move.from_uci('a5c6')]} time: 18.5
+ID: ZfRz9Yiu info: e7b4 {'depth': 8, 'score': PovScore(Cp(-3), BLACK), 'pv': [Move.from_uci('e7b4')]} time: 18.066666666666666
+ID: ZfRz9Yiu info: d7c6 {'depth': 8, 'score': PovScore(Cp(-4), BLACK), 'pv': [Move.from_uci('d7c6')]} time: 17.633333333333333
+ID: ZfRz9Yiu info: c8g4 {'depth': 8, 'score': PovScore(Cp(-2), BLACK), 'pv': [Move.from_uci('c8g4')]} time: 17.2
+ID: ZfRz9Yiu info: g4f3 {'depth': 9, 'score': PovScore(Cp(+79), BLACK), 'pv': [Move.from_uci('g4f3')]} time: 16.766666666666666
+ID: ZfRz9Yiu info: b6d4 {'depth': 8, 'score': PovScore(Cp(+73), BLACK), 'pv': [Move.from_uci('b6d4')]} time: 16.4
+ID: ZfRz9Yiu info: b4c4 {'depth': 8, 'score': PovScore(Cp(+77), BLACK), 'pv': [Move.from_uci('b4c4')]} time: 16.0
+ID: ZfRz9Yiu info: d4e5 {'depth': 8, 'score': PovScore(Cp(+82), BLACK), 'pv': [Move.from_uci('d4e5')]} time: 15.633333333333333
+ID: ZfRz9Yiu info: e5b2 {'depth': 9, 'score': PovScore(Cp(+151), BLACK), 'pv': [Move.from_uci('e5b2')]} time: 15.266666666666667
+ID: ZfRz9Yiu info: a8d8 {'depth': 9, 'score': PovScore(Cp(+145), BLACK), 'pv': [Move.from_uci('a8d8')]} time: 14.933333333333334
+ID: ZfRz9Yiu info: c4c2 {'depth': 9, 'score': PovScore(Cp(+145), BLACK), 'pv': [Move.from_uci('c4c2')]} time: 14.566666666666666
+ID: ZfRz9Yiu info: c2e2 {'depth': 9, 'score': PovScore(Cp(+139), BLACK), 'pv': [Move.from_uci('c2e2')]} time: 14.266666666666667
+ID: ZfRz9Yiu info: e2f3 {'depth': 10, 'score': PovScore(Cp(+109), BLACK), 'pv': [Move.from_uci('e2f3')]} time: 13.933333333333334
+ID: ZfRz9Yiu info: d8d7 {'depth': 9, 'score': PovScore(Cp(+74), BLACK), 'pv': [Move.from_uci('d8d7')]} time: 13.633333333333333
+ID: ZfRz9Yiu info: f3a3 {'depth': 9, 'score': PovScore(Cp(+71), BLACK), 'pv': [Move.from_uci('f3a3')]} time: 13.333333333333334
+ID: ZfRz9Yiu info: e8e7 {'depth': 9, 'score': PovScore(Cp(+106), BLACK), 'pv': [Move.from_uci('e8e7')]} time: 13.066666666666666
+ID: ZfRz9Yiu info: a3h3 {'depth': 8, 'score': PovScore(Cp(+119), BLACK), 'pv': [Move.from_uci('a3h3')]} time: 12.8
+ID: ZfRz9Yiu info: e7f6 {'depth': 10, 'score': PovScore(Cp(+112), BLACK), 'pv': [Move.from_uci('e7f6')]} time: 12.533333333333333
+ID: ZfRz9Yiu info: f6g6 {'depth': 9, 'score': PovScore(Cp(+144), BLACK), 'pv': [Move.from_uci('f6g6')]} time: 12.266666666666667
+ID: ZfRz9Yiu info: h3d7 {'depth': 8, 'score': PovScore(Cp(+186), BLACK), 'pv': [Move.from_uci('h3d7')]} time: 12.033333333333333
+ID: ZfRz9Yiu info: d7d6 {'depth': 10, 'score': PovScore(Cp(+226), BLACK), 'pv': [Move.from_uci('d7d6')]} time: 11.766666666666667
+Restarting afer berserk ApiError:  HTTP 400: Bad Request: {'error': 'Not your turn, or game already over'}
+2024-01-07 00:57:55.952542 | challenge by smashbrah; ID: d6tZ3LVc - standard - rapid - rated
+Accepted challenge of smashbrah
+{'type': 'gameStart', 'game': {'fullId': 'd6tZ3LVcdiSd', 'gameId': 'd6tZ3LVc', 'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'color': 'black', 'lastMove': '', 'source': 'friend', 'status': {'id': 20, 'name': 'started'}, 'variant': {'key': 'standard', 'name': 'Standard'}, 'speed': 'rapid', 'perf': 'rapid', 'rated': True, 'hasMoved': False, 'opponent': {'id': 'smashbrah', 'username': 'smashbrah', 'rating': 1551}, 'isMyTurn': False, 'secondsLeft': 900, 'compat': {'bot': True, 'board': True}, 'id': 'd6tZ3LVc'}}
+Game started: d6tZ3LVc
+ID: d6tZ3LVc info: e7e5 book move time: 5.0
+ID: d6tZ3LVc info: g8f6 book move time: 5.0
+ID: d6tZ3LVc info: d7d6 book move time: 5.0
+ID: d6tZ3LVc info: f6e4 book move time: 5.0
+ID: d6tZ3LVc info: d6d5 book move time: 5.0
+ID: d6tZ3LVc info: d8e7 {'depth': 8, 'score': PovScore(Cp(+1), BLACK), 'pv': [Move.from_uci('d8e7')]} time: 30.633333333333333
+ID: d6tZ3LVc info: d5c4 {'depth': 8, 'score': PovScore(Cp(+3), BLACK), 'pv': [Move.from_uci('d5c4')]} time: 29.933333333333334
+ID: d6tZ3LVc info: b7b5 {'depth': 8, 'score': PovScore(Cp(+62), BLACK), 'pv': [Move.from_uci('b7b5')]} time: 29.266666666666666
+ID: d6tZ3LVc info: e4c3 {'depth': 9, 'score': PovScore(Cp(+69), BLACK), 'pv': [Move.from_uci('e4c3')]} time: 28.633333333333333
+ID: d6tZ3LVc info: e7d8 {'depth': 7, 'score': PovScore(Cp(+69), BLACK), 'pv': [Move.from_uci('e7d8')]} time: 28.0
+ID: d6tZ3LVc info: f8e7 {'depth': 8, 'score': PovScore(Cp(+61), BLACK), 'pv': [Move.from_uci('f8e7')]} time: 27.4
+ID: d6tZ3LVc info: c7c6 {'depth': 8, 'score': PovScore(Cp(+59), BLACK), 'pv': [Move.from_uci('c7c6')]} time: 26.8
+ID: d6tZ3LVc info: c6b5 {'depth': 8, 'score': PovScore(Cp(+49), BLACK), 'pv': [Move.from_uci('c6b5')]} time: 26.233333333333334
+ID: d6tZ3LVc info: e7a3 {'depth': 9, 'score': PovScore(Cp(+70), BLACK), 'pv': [Move.from_uci('e7a3')]} time: 25.7
+ID: d6tZ3LVc info: a3e7 {'depth': 8, 'score': PovScore(Cp(+160), BLACK), 'pv': [Move.from_uci('a3e7')]} time: 25.166666666666668
+ID: d6tZ3LVc info: c8d7 {'depth': 8, 'score': PovScore(Cp(+202), BLACK), 'pv': [Move.from_uci('c8d7')]} time: 24.666666666666668
+ID: d6tZ3LVc info: b8d7 {'depth': 8, 'score': PovScore(Cp(+212), BLACK), 'pv': [Move.from_uci('b8d7')]} time: 24.166666666666668
+ID: d6tZ3LVc info: e8f8 {'depth': 8, 'score': PovScore(Cp(+217), BLACK), 'pv': [Move.from_uci('e8f8')]} time: 23.7
+ID: d6tZ3LVc info: e7b4 {'depth': 9, 'score': PovScore(Cp(+227), BLACK), 'pv': [Move.from_uci('e7b4')]} time: 23.233333333333334
+ID: d6tZ3LVc info: a7a5 {'depth': 8, 'score': PovScore(Cp(+224), BLACK), 'pv': [Move.from_uci('a7a5')]} time: 22.766666666666666
+ID: d6tZ3LVc info: h7h5 {'depth': 8, 'score': PovScore(Cp(+225), BLACK), 'pv': [Move.from_uci('h7h5')]} time: 22.366666666666667
+ID: d6tZ3LVc info: d7f6 {'depth': 8, 'score': PovScore(Cp(+227), BLACK), 'pv': [Move.from_uci('d7f6')]} time: 21.933333333333334

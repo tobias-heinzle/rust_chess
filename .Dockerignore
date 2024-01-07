@@ -1,0 +1,6 @@
+/notes/
+/benches/
+/tests/
+/.venv/
+/.vscode/
+/target/

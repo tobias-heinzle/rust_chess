@@ -1,9 +1,13 @@
 import asyncio
+from random import sample
+from time import sleep
+from datetime import datetime
+
 import berserk
 import chess
-from time import sleep
-from wrapper import ChessEngineWrapper
+import chess.polyglot
 
+from wrapper import ChessEngineWrapper
 
 RATED_SPEEDS = ["bullet", "blitz", "rapid"]
 
@@ -18,16 +22,16 @@ class Game():
     def __init__(self, client, event):
         self.game_id = event["game"]["gameId"]
         color = event["game"]['color']
-        fen = event["game"]["fen"]
         speed = event["game"]["speed"]
+        self.fen = event["game"]["fen"]
         self.is_my_turn = event["game"]["isMyTurn"]
         self.client = client
         self.color = 1 if color == "white" else 0
         self.board = chess.Board()
-        self.board.set_fen(fen)
-        self.time_limit = 1.0
+        self.board.set_fen(self.fen)
+        self.book_move_time = 1.0
         if speed in Game.speed_limit.keys():
-            self.time_limit = Game.speed_limit[speed]
+            self.book_move_time = Game.speed_limit[speed]
 
     async def start(self) -> None:
         print("Game started: " + self.game_id)
@@ -46,25 +50,57 @@ class Game():
                     break
 
                 self.board = chess.Board()
-
+                
                 moves_played = event['moves'].split(" ")
 
                 if len(moves_played) % 2 == self.color:
-                    continue
+                    continue  
+
+                if self.color == 1:
+                    time_left = event["wtime"].time()
+                else:
+                    time_left = event["btime"].time()
+
+                seconds = (time_left.hour * 60 + time_left.minute) * 60 + time_left.second
+                time_limit = seconds / 30
+
 
                 for move in moves_played:
                     self.board.push(chess.Move.from_uci(move))
 
-                await self.bot_move(engine)
+                await self.bot_move(engine, time_limit)
 
         await engine.quit()
 
-    async def bot_move(self, engine):
-        move, result = await engine.analyze_position(self.board, time_limit=self.time_limit)
+    async def bot_move(self, engine, time_limit = None):
+        book_move = choose_book_move(self.board)
+
+        if book_move is not None:
+            move = book_move
+            result = "book move"
+            time_limit = self.book_move_time
+            sleep(time_limit)
+        else:
+            if time_limit is None:
+                time_limit = self.book_move_time
+            move, result = await engine.analyze_position(self.board, time_limit)
+        
         self.client.bots.make_move(self.game_id, str(move))
 
-        print("ID: " + str(self.game_id) + " info: " + str(move) + " " + str(result))
+        print("ID: " + str(self.game_id) + " info: " + str(move) + " " + str(result) + " time: " + str(time_limit))
 
+
+
+
+def choose_book_move(board: chess.Board, book: str = "books/titans.bin") -> chess.Move | None:
+    with chess.polyglot.open_reader("books/titans.bin") as reader:
+        book_entries = list(reader.find_all(board))
+
+        if len(book_entries) > 0:
+            weights = [entry.weight for entry in book_entries]
+            return sample(book_entries, 1, counts=weights)[0].move
+
+    return None
 
 
 def should_accept(challenge_event) -> bool:
@@ -75,12 +111,13 @@ def should_accept(challenge_event) -> bool:
     game_id = challenge_event["challenge"]["id"]
 
     is_rated = "rated" if rated else "unrated"
-    print(f"Challenge by {challenger}; ID: {game_id} - {variant} - {speed} - {is_rated}")
+    print(f"{datetime.now()} | challenge by {challenger}; ID: {game_id} - {variant} - {speed} - {is_rated}")
  
     with open("allowed.challengers") as file:
 
         # These challengers can submit any challenge and it will be accepted
-        allowed_challengers = file.readlines()
+        allowed_challengers = file.read().splitlines()
+        print("allowed_challengers:", allowed_challengers)
         if challenger in allowed_challengers:
             return True
 
@@ -122,9 +159,12 @@ while True:
     try:     
         main_loop()
     except berserk.exceptions.ApiError as exc:
-        sleep(2.0)
-        print("Restarting afer api exception: ", exc)
+        sleep(1.0)
+        print("Restarting afer berserk ApiError: ", exc)
         continue
-
+    except RuntimeError as exc:
+        sleep(1.0)
+        print("Restarting afer RuntimeError: ", exc)
+        continue
     quit()
     

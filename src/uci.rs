@@ -145,10 +145,11 @@ pub fn change_position(arguments: &[&str]) -> (chess::Board, Vec<u64>){
     hash_vec.push(new_board.get_hash());
 
     for move_str in &arguments[moves_index .. ]{
-        let move_obj = chess::ChessMove::from_str(move_str);
+        let parsed_move_result = chess::ChessMove::from_str(move_str);
 
-        if move_obj.is_ok() {
-            new_board = new_board.make_move_new(move_obj.unwrap());
+        if parsed_move_result.is_ok() {
+            let move_obj = parsed_move_result.unwrap();
+            new_board = new_board.make_move_new(move_obj);
             hash_vec.push(new_board.get_hash());
         }
 
