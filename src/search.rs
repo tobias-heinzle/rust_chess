@@ -12,6 +12,8 @@ pub type SearchInfo = (ScoreType, ChessMove, DepthType);
 // Evaluation constants
 pub const INFINITY: i32 = 1000000;
 pub const DRAW: i32 = 0;
+pub const MATE_MARGIN: i32 = 100;
+pub const MATE_THRESHOLD: i32 = INFINITY - MATE_MARGIN;
 
 const PAWN_VALUE: i32 = 80;
 const KNIGHT_VALUE: i32 = 300;
@@ -83,8 +85,11 @@ impl SearchContext {
                 if *chess_move == best_move { continue; }
 
 
-                let value = -self.search(& self.board.make_move_new(*chess_move), depth -1, -INFINITY, -alpha);
-    
+                let mut value = -self.search(& self.board.make_move_new(*chess_move), depth -1, -INFINITY, -alpha);
+                
+                if value > MATE_THRESHOLD {
+                    value -= 1;
+                }
     
                 if value > alpha {
                     current_best = *chess_move;
@@ -133,8 +138,12 @@ impl SearchContext {
             
             if board.legal(table_entry.best_move){
                 
-                let value = - self.search(&board.make_move_new(table_entry.best_move), depth - 1, -beta, -alpha);
+                let mut value = - self.search(&board.make_move_new(table_entry.best_move), depth - 1, -beta, -alpha);
     
+                if value > MATE_THRESHOLD {
+                    value -= 1;
+                }
+
                 alpha = max(alpha, value);
                 
                 if alpha >= beta { 
@@ -159,11 +168,15 @@ impl SearchContext {
 
                 if chess_move == best_move { continue; }
     
-                let value = - self.search(&board.make_move_new(chess_move), depth - 1, -beta, -alpha);
+                let mut value = - self.search(&board.make_move_new(chess_move), depth - 1, -beta, -alpha);
     
-                
+                if value > MATE_THRESHOLD {
+                    value -= 1;
+                }
+
                 if value > alpha {
                     best_move = chess_move;
+
                     alpha = value;
                 }
                 
@@ -186,7 +199,7 @@ impl SearchContext {
     pub fn quiescence_search(&mut self, board: &Board, mut alpha: ScoreType, beta: ScoreType) -> i32{
 
         match board.status() {
-            BoardStatus::Checkmate => return -INFINITY,
+            BoardStatus::Checkmate => return -(INFINITY - 1),
             BoardStatus::Stalemate => return DRAW,
             _ => {}
         }
@@ -214,8 +227,12 @@ impl SearchContext {
             
             if board.legal(table_entry.best_move){
                 
-                let value = - self.quiescence_search(&board.make_move_new(table_entry.best_move), -beta, -alpha);
-    
+                let mut value = - self.quiescence_search(&board.make_move_new(table_entry.best_move), -beta, -alpha);
+                
+                if value > MATE_THRESHOLD {
+                    value -= 1;
+                }
+
                 alpha = max(alpha, value);
                 
                 if alpha >= beta { 

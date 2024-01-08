@@ -4,7 +4,7 @@ use std::sync::mpsc::{self, Receiver, Sender};
 use std::str::FromStr;
 use chess::{self, ChessMove, Square};
 
-use crate::search::{SearchInfo, SearchResult, SearchContext};
+use crate::search::{SearchInfo, SearchResult, SearchContext, MATE_THRESHOLD, INFINITY};
 
 const STOP_SIGNAL: bool = true;
 
@@ -126,7 +126,7 @@ fn terminate_search(threads: Vec<SearchThread>) {
 
     let (score, best_move) = results[0];
 
-    println!("info score cp {score}");
+    print_score_only(score);
     println!("bestmove {best_move}");
 }
 
@@ -186,7 +186,7 @@ fn printing_loop(info_receiver: Receiver<SearchInfo>, print_reveiver: Receiver<S
         );
         
         if depth > 0 {    
-            println!("info depth {depth} score cp {score} pv {best_move}");
+            print_info(score, best_move, depth)
         }
 
         let termination_signal = terminate_print_receiver.try_recv().unwrap_or(false);
@@ -194,4 +194,32 @@ fn printing_loop(info_receiver: Receiver<SearchInfo>, print_reveiver: Receiver<S
 
     }
 
+}
+
+fn print_info(score: i32, best_move: ChessMove, depth: u8) {
+    if score.abs() > MATE_THRESHOLD{
+        let mut mate_distance = INFINITY - score.abs();
+
+        if score < 0 {
+            mate_distance = -mate_distance;
+        }
+        println!("info depth {depth} score mate {mate_distance} pv {best_move}")
+    }
+    else {
+        println!("info depth {depth} score cp {score} pv {best_move}");
+    }
+}
+
+fn print_score_only(score: i32){
+    if score.abs() > MATE_THRESHOLD{
+        let mut mate_distance = INFINITY - score.abs();
+
+        if score < 0 {
+            mate_distance = -mate_distance;
+        }
+        println!("info score mate {mate_distance}")
+    }
+    else {
+        println!("info score cp {score}");
+    }
 }

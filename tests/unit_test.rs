@@ -18,7 +18,7 @@ mod tests {
         
         let result = context.quiescence_search(&board, alpha, beta);
 
-        assert_eq!(result, -rust_chess::search::INFINITY);
+        assert_eq!(result, -(rust_chess::search::INFINITY - 1));
     }
 
    

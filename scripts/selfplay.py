@@ -99,13 +99,12 @@ async def selfplay_loop():
             
             outcome = board.outcome(claim_draw = True)
             
-            if outcome is not None:
-                if outcome.winner == engine_a_color:
-                    stats['statistics']['wins_a'] += 1
-                else:
-                    stats['statistics']['wins_b'] += 1
-            else:
+            if outcome.winner == engine_a_color:
+                stats['statistics']['wins_a'] += 1
+            elif outcome.winner == None:
                 stats['statistics']['draws'] += 1
+            else:
+                stats['statistics']['wins_b'] += 1
 
 
             stats['statistics']['total'] += 1

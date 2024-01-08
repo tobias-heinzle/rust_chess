@@ -19,8 +19,8 @@ mod tests {
         
         let result = context.root_search( max_depth);
 
-        assert_eq!(result.0, rust_chess::search::INFINITY);
         assert_eq!(result.1, chess::ChessMove::from_str("f6a6").expect("Invalid Move"));
+        assert_eq!(result.0, rust_chess::search::INFINITY - 3);
         
     }
 
@@ -33,8 +33,8 @@ mod tests {
         let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
         
         let result = context.root_search( max_depth);
-        assert_eq!(result.0, rust_chess::search::INFINITY);
         assert_eq!(result.1, chess::ChessMove::from_str("c3e5").expect("Invalid Move"));
+        assert_eq!(result.0, rust_chess::search::INFINITY - 3);
         
     }
 
@@ -113,29 +113,33 @@ mod tests {
     }
     
 
-    // #[test]
-    // fn mate_in_four_0(){
-    //     let board = chess::Board::from_str("r4r1k/1R1R2p1/7p/8/8/3Q1Ppq/P7/6K1 w - - 0 1").expect("Invalid position");
-    //     let max_depth = 8;
-    //     let time_limit = 10;
+    #[test]
+    fn mate_in_four_0(){
+        let board = chess::Board::from_str("r4r1k/1R1R2p1/7p/8/8/3Q1Ppq/P7/6K1 w - - 0 1").expect("Invalid position");
+        let max_depth = 8;
+        let (_x, rx) = mpsc::channel();
+        let (tx, _) = mpsc::channel();
+        let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
         
-    //     let result = rust_chess::root_search(&board, max_depth, time_limit);
+        let result = context.root_search( max_depth);
 
-    //     assert_eq!(result.0, rust_chess::search::INFINITY);
-    //     assert_eq!(result.1, chess::ChessMove::from_str("d3h7").expect("Invalid Move"));
+        assert_eq!(result.1, chess::ChessMove::from_str("d3h7").expect("Invalid Move"));
+        assert_eq!(result.0, rust_chess::search::INFINITY - 4);
         
-    // }
+    }
 
     // #[test]
     // fn mate_in_five_0(){
     //     let board = chess::Board::from_str("2q1nk1r/4Rp2/1ppp1P2/6Pp/3p1B2/3P3P/PPP1Q3/6K1 w - - 0 1").expect("Invalid position");
-    //     let max_depth = 10;
-    //     let time_limit = 10;
+    //     let max_depth = 9;
+    //     let (_x, rx) = mpsc::channel();
+    //     let (tx, _) = mpsc::channel();
+    //     let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
         
-    //     let result = rust_chess::root_search(&board, max_depth, time_limit);
+    //     let result = context.root_search( max_depth);
 
-    //     assert_eq!(result.0, rust_chess::search::INFINITY);
     //     assert_eq!(result.1, chess::ChessMove::from_str("e7e8").expect("Invalid Move"));
+    //     assert_eq!(result.0, rust_chess::search::INFINITY - 5);
     // }
 
     // Mate in 12: 8/3P3k/n2K3p/2p3n1/1b4N1/2p1p1P1/8/3B4 w - - 0 1
