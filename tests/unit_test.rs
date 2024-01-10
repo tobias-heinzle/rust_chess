@@ -41,9 +41,10 @@ mod tests {
     fn uci_read_position(){
         let command: Vec<&str> = "fen 7k/6Rp/7B/8/8/8/7P/7K w - - 0 1 moves g7h7 h8h7 h6g7".split(" ").collect();
         
-        let (new_board, _) = rust_chess::uci::change_position(&command[0 ..]);
+        let position = rust_chess::uci::change_position(&command[0 ..]);
         
         // Board struct does not track the move number, so there is no halfmove of fullmove clock in the struct*
+        let new_board = position.board;
         let resulting_position = "8/6Bk/8/8/8/8/7P/7K b - - 0 1".to_string();
         assert_eq!(format!("{new_board}"), resulting_position)
 

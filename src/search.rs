@@ -163,7 +163,9 @@ impl SearchContext {
             if self.receiver_channel.try_recv().unwrap_or(false){return alpha; }
 
             iterable.set_iterator_mask( get_targets(&board, piece ));
-    
+
+            
+            
             for chess_move in &mut iterable{
 
                 if chess_move == best_move { continue; }
@@ -213,8 +215,6 @@ impl SearchContext {
         
         self.set_visited(board.get_hash());
 
-        let mut best_move = ChessMove::new(Square::A1, Square::A1, None);
-
         let table_probe = self.hash_table.get(board.get_hash());
         
         if table_probe.is_some() {
@@ -222,25 +222,7 @@ impl SearchContext {
 
             if table_entry.score >= beta {
                 self.unset_visited(board.get_hash());
-                return table_entry.score;
-            }
-            
-            if board.legal(table_entry.best_move){
-                
-                let mut value = - self.quiescence_search(&board.make_move_new(table_entry.best_move), -beta, -alpha);
-                
-                if value > MATE_THRESHOLD {
-                    value -= 1;
-                }
-
-                alpha = max(alpha, value);
-                
-                if alpha >= beta { 
-                    self.unset_visited(board.get_hash());
-                    return alpha
-                }
-
-                best_move = table_entry.best_move
+                return beta;
             }
             
         }
@@ -251,12 +233,8 @@ impl SearchContext {
 
             iterable.set_iterator_mask( get_targets(board, piece) );
 
-
-            for chess_move in &mut iterable{
-                if chess_move == best_move { continue; }
-            
+            for chess_move in &mut iterable{            
                 let value = - self.quiescence_search(&board.make_move_new(chess_move), -beta, -alpha);
-
 
                 alpha = max(alpha, value);
 
@@ -271,6 +249,7 @@ impl SearchContext {
 
     }
 
+    #[inline]
     pub fn already_visited(&mut self, position_hash: u64) -> bool{
         if self.repetition_table[position_hash as usize % REP_TABLE_SIZE] >= 1{
             for past_hash in self.past_position_hashes.iter() {
@@ -281,12 +260,14 @@ impl SearchContext {
         }
         return false;
     }
-    
+
+    #[inline]
     pub fn set_visited(&mut self, position_hash: u64) {
         self.repetition_table[position_hash as usize % REP_TABLE_SIZE] += 1;
         self.past_position_hashes.push(position_hash);
     }
 
+    #[inline]
     pub fn unset_visited(&mut self, position_hash: u64) {
         self.repetition_table[position_hash as usize % REP_TABLE_SIZE] -= 1;
         self.past_position_hashes.pop();

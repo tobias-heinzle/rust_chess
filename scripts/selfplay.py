@@ -5,6 +5,7 @@ import json
 import uuid
 
 from chess import Board, WHITE, BLACK
+import chess.engine
 from wrapper import ChessEngineWrapper
 
 parser = argparse.ArgumentParser(
@@ -111,17 +112,26 @@ async def selfplay_loop():
 
             if verbose:
                 print(outcome)
-
+            
             await engine_a.quit()
+            if verbose:
+                print("a quit")
             await engine_b.quit()
+            if verbose:
+                print("b quit")
 
             print(f"Game {game} done")
 
-        except:
-            if verbose:
-                print(f"Game {game} failed!")
-            stats["errors"] += 1
-            game -= 1
+        except KeyboardInterrupt:
+            break
+        except RuntimeError as exc:
+            raise RuntimeError
+            break
+        # except:
+        #     if verbose:
+        #         print(f"Game {game} failed!")
+        #     stats["errors"] += 1
+        #     game -= 1
         
         game += 1
 
@@ -131,4 +141,5 @@ async def selfplay_loop():
         with open(f"results/{name_a}_vs_{name_b}_{'_'.join(stats['date'].split(' '))}.json", 'w') as file:
             json.dump(stats, file)
 
+asyncio.set_event_loop_policy(chess.engine.EventLoopPolicy())
 asyncio.run(selfplay_loop())

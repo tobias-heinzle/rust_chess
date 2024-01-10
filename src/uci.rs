@@ -1,105 +1,209 @@
-use std::thread::JoinHandle;
+use std::thread::{JoinHandle, sleep};
 use std::{thread, time, io};
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::str::FromStr;
 use chess::{self, ChessMove, Square};
+use std::fs::File;
+use std::io::Write;    
 
 use crate::search::{SearchInfo, SearchResult, SearchContext, MATE_THRESHOLD, INFINITY};
 
 const STOP_SIGNAL: bool = true;
+const MAX_DEPTH: u8 = 64;
 
 // TODO: Change this code to use the Game Struct from chess crate   
-
-struct SearchThread {
-    handle: JoinHandle<SearchResult>,
-    termination_sender: Sender<bool>
+pub struct Position {
+    pub board: chess::Board,
+    pub hash_history : Vec<u64>,
 }
 
-pub fn uci_mode(){
-    let mut board = chess::Board::default();
-    let mut position_hashes: Vec<u64> = vec![];
-    let mut is_searching = false;
+struct SearchGroup {
+    principal : SearchAgent,
+    agents : Vec<SearchAgent>
+}
 
-    let (print_sender, 
-        info_sender, 
-        stop_print_sender, 
-        output_thread_handle) = start_output_thread();
-    let mut search_threads: Vec<SearchThread> = vec![];
+impl SearchGroup {
+
+    fn stop(self) -> SearchResult{
+
+        for agent in self.agents {
+            send_termination_signal(&agent.stop, 128);
+            let _ = agent.handle.join();
+        }
+        send_termination_signal(&self.principal.stop, 128);
+
+        let search_result = self.principal.handle.join();
+
+        return search_result.unwrap();
+    }
+}
+
+struct SearchAgent {
+    stop: Sender<bool>,
+    handle: JoinHandle<SearchResult>,
+}
+
+struct Printer {
+    str_sender : Sender<String>,
+    info_sender : Sender<SearchInfo>,
+    bestmove_sender : Sender<ChessMove>,
+    stop_sender : Sender<bool>,
     
-    let respond = |message: &str| {let _ = print_sender.send(message.to_string());};
+    handle: JoinHandle<()>,
+}
+
+impl Printer {
+    fn print(self, text: &str) -> Printer{
+        let _ = self.str_sender.send(text.to_string());
+        return self
+    }
+
+    fn result(self, result: SearchResult) -> Printer{
+        let _ = self.info_sender.send( (result.0, result.1, MAX_DEPTH) );
+        return self
+    }
+
+    fn bestmove(self, best_move : ChessMove) -> Printer{
+        let _ = self.bestmove_sender.send(best_move);
+        return self
+    }
+
+    fn stop(self){
+        send_termination_signal(&self.stop_sender, 1);
+        let _ = self.handle.join();
+    }
+}
+
+struct PrinterReceiver {
+    str : Receiver<String>,
+    info : Receiver<SearchInfo>,
+    bestmove : Receiver<ChessMove>,
+    stop : Receiver<bool>,
+}
+
+
+fn build_printer() -> Printer{
+    let (print_sender, print_receiver) = mpsc::channel();
+    let (info_sender, info_receiver) = mpsc::channel();
+    let (bestmove_sender, bestmove_reveicer) = mpsc::channel(); 
+    let (stop_sender, stop_receiver) = mpsc::channel();
+
+    let receiver = PrinterReceiver{str : print_receiver, info : info_receiver, bestmove : bestmove_reveicer, stop : stop_receiver};
+    
+    let handle = thread::spawn(
+        move || printing_loop(receiver));
+    
+    let printer = Printer{str_sender : print_sender, info_sender : info_sender,  bestmove_sender : bestmove_sender, stop_sender : stop_sender, handle};
+    
+    return printer;
+}
+
+fn create_search_context (info_sender: Sender<SearchInfo>, position : &Position ) -> (SearchContext, Sender<bool>) {
+    let (stop_sender, stop_receiver) = mpsc::channel();
+    
+    let mut search_context = SearchContext::new(
+        position.board, 
+        stop_receiver, 
+        info_sender.clone() 
+    );
+    for hash in position.hash_history.iter() {
+        search_context.set_visited(*hash);
+    }
+    return (search_context, stop_sender);
+}
+
+
+fn start_search(num_threads: u8,  info_sender: Sender<SearchInfo>, position: &Position) -> SearchGroup {
+
+    assert!(num_threads > 0);
+
+    let (mut context, stop_sender) = create_search_context(info_sender, position);
+
+    let principal = SearchAgent{
+        handle: thread::spawn(move || context.root_search(MAX_DEPTH)), 
+        stop: stop_sender
+    };
+    
+    let mut agents:  Vec<SearchAgent> = vec![];
+
+    let (dummy_sender, _) = mpsc::channel();
+
+    for _ in 0 .. num_threads - 1 {
+        let (mut agent_context, agent_stop_sender) = create_search_context(dummy_sender.clone(), position);
+        let agent = SearchAgent{
+            handle : thread::spawn(move || agent_context.root_search(MAX_DEPTH)), 
+            stop : agent_stop_sender
+        };
+
+        agents.push(agent);
+
+    };
+
+    let search_group = SearchGroup {
+        principal : principal,
+        agents : agents
+    };
+
+    return search_group;
+}
+
+
+pub fn uci_mode(){
+    let path = "logfile.log";
+    let mut logfile = File::create(path).expect("unable to create logfile");
+    write!(logfile, "UCI MODE STARTED\n").expect("unable to write to logifle");
+
+    let num_threads = 1;
+
+    let mut position = Position{
+        board : chess::Board::default(),
+        hash_history : vec![],
+    };
+
+
+    let mut printer = build_printer();
+    let mut search_group: Option<SearchGroup> = None;
 
     loop {
         let input_line = collect_user_input();
+        write!(logfile, "{}\n", input_line).expect("unable to write to logfile!");
         let input: Vec<&str> = input_line.split(" ").collect();
         let command = input[0];
         let arguments = &input[1..];
 
-        if      command == "uci"        { respond("uciok"); }
-        else if command == "isready"    { respond("readyok"); }
-        else if command == "ucinewgame" { board = chess::Board::default(); position_hashes = vec![]; }
-        else if command == "position"   { (board, position_hashes) = change_position(arguments); }
-        else if command == "stop"       { terminate_search(search_threads); search_threads = vec![]; is_searching = false; }
-        else if command == "quit"       { terminate_search(search_threads); break;}
-        else if command == "go"         { 
-            if is_searching {
-                continue;
-            } 
-            else { 
-                // TODO: Accept movetime parameter!
-                search_threads = start_search_threads(1, board, info_sender.clone(), position_hashes.clone());
-                is_searching = true; 
+        if      command == "uci"        { printer = printer.print("uciok"); }
+        else if command == "isready"    { printer = printer.print("readyok"); }
+        else if command == "ucinewgame" { position = Position{ board : chess::Board::default(), hash_history : vec![] }; }
+        else if command == "position"   { position = change_position(arguments); }
+        else if command == "stop"       { 
+            if search_group.is_some(){
+                let result = search_group.unwrap().stop();
+                
+                printer = printer.result(result);
+                printer = printer.bestmove(result.1);
+
+                search_group = None;
             }
         }
-        else                            { log(format!("bad input: {input_line}"));}
+        else if command == "quit"       { 
+            printer.stop();
 
-    }
-
-    let _ = stop_print_sender.send(STOP_SIGNAL);
-    let _ = output_thread_handle.join();
-
-}
-
-fn start_output_thread() -> (Sender<String>, Sender<SearchInfo>, Sender<bool>, JoinHandle<()>) {
-    let (print_sender, print_receiver) = mpsc::channel();
-    let (info_sender, info_receiver) = mpsc::channel();
-    let (stop_sender, stop_receiver) = mpsc::channel();
-
-
-    let output_thread_handle = thread::spawn(
-        move || printing_loop(
-            info_receiver, 
-            print_receiver, 
-            stop_receiver));
-
-    return (print_sender, info_sender, stop_sender, output_thread_handle);
-}
-
-
-fn start_search_threads(n_workers: u8, board: chess::Board,  info_sender: Sender<SearchInfo>, position_hashes: Vec<u64>) -> Vec<SearchThread> {
-    let mut search_threads:  Vec<SearchThread> = vec![];
-    let (dummy_sender, _) = mpsc::channel();
-
-    for i in 0 .. n_workers {
-        let (stop_sender, stop_receiver) = mpsc::channel();
-        let mut context = SearchContext::new(
-            board, 
-            stop_receiver, 
-            if i == 0 { info_sender.clone() } else { dummy_sender.clone() });
-        
-        for hash in position_hashes.iter() {
-            context.set_visited(*hash);
+            if search_group.is_some() {
+                let _ = search_group.unwrap().stop();
+            }; 
+            
+            return
+        }
+        else if command == "go"         {
+            if search_group.is_none() {
+                search_group = Some(start_search(num_threads, printer.info_sender.clone(), &position));
+            }; 
         }
 
-        let thread_handle = thread::spawn(move || context.root_search(200));
-        
-        let search_thread = SearchThread{handle: thread_handle, termination_sender: stop_sender};
-
-        search_threads.push(search_thread);
-
     }
 
-    return search_threads;
 }
+
 
 fn send_termination_signal(sender: &Sender<bool>, n_signals: i32) {
     for _ in 0 .. n_signals { 
@@ -107,36 +211,9 @@ fn send_termination_signal(sender: &Sender<bool>, n_signals: i32) {
     }
 }
 
-fn terminate_search(threads: Vec<SearchThread>) {
-
-    if threads.len() == 0 { return; }
-
-    for thread in &threads {
-        send_termination_signal(&thread.termination_sender, 100);
-    }
-
-    let mut results = vec![];
-
-    for thread in threads {
-        let thread_result = thread.handle.join();
-        if thread_result.is_ok() {
-            results.push(thread_result.unwrap());
-        }
-    }
-
-    let (score, best_move) = results[0];
-
-    print_score_only(score);
-    println!("bestmove {best_move}");
-}
-
-fn log(text: String) {
-    println!("{text}");
-}
-
-pub fn change_position(arguments: &[&str]) -> (chess::Board, Vec<u64>){
+pub fn change_position(arguments: &[&str]) -> Position{
     let mut new_board = chess::Board::default();
-    let mut hash_vec: Vec<u64> = vec![];
+    let mut hash_history: Vec<u64> = vec![];
 
     let moves_index = arguments.iter().position(|&r| r == "moves").unwrap_or(arguments.len());
 
@@ -145,21 +222,28 @@ pub fn change_position(arguments: &[&str]) -> (chess::Board, Vec<u64>){
         new_board = chess::Board::from_str(&fen_string).unwrap_or(new_board);
     }
 
-    hash_vec.push(new_board.get_hash());
+    hash_history.push(new_board.get_hash());
 
-    for move_str in &arguments[moves_index .. ]{
-        let parsed_move_result = chess::ChessMove::from_str(move_str);
+    for move_str in &arguments[moves_index + 1 .. ]{
+
+        let parsed_move_result = chess::ChessMove::from_str(*move_str);
 
         if parsed_move_result.is_ok() {
-            // TODO: Figure out why this sometimes returns an error value and deal with it
             let move_obj = parsed_move_result.unwrap();
-            new_board = new_board.make_move_new(move_obj);
-            hash_vec.push(new_board.get_hash());
-        }
 
+            if new_board.legal(move_obj){
+                new_board = new_board.make_move_new(move_obj);
+                hash_history.push(new_board.get_hash());
+            }
+        }
+        
+        
     }
 
-    return (new_board, hash_vec); 
+    return Position {
+        board : new_board,
+        hash_history : hash_history
+    }; 
 }
 
 
@@ -172,24 +256,29 @@ pub fn collect_user_input() -> String{
     return user_input.trim().to_string();
 }
 
-fn printing_loop(info_receiver: Receiver<SearchInfo>, print_reveiver: Receiver<String>, terminate_print_receiver: Receiver<bool>){
+fn printing_loop(receiver: PrinterReceiver){
     let update_interval = time::Duration::from_millis(10);
 
     loop {
         thread::sleep(update_interval);
 
-        let message = print_reveiver.try_recv().unwrap_or("".to_string());
+        let message = receiver.str.try_recv().unwrap_or("".to_string());
         if message.len() > 0 { println!("{message}"); }
 
-        let (score, best_move, depth) = info_receiver.try_recv().unwrap_or(
+        let (score, mut best_move, depth) = receiver.info.try_recv().unwrap_or(
             (0, ChessMove::new(Square::A1, Square::A1, None), 0)
         );
         
-        if depth > 0 {    
-            print_info(score, best_move, depth)
+        if depth > 0 && depth < MAX_DEPTH {    
+            print_info(score, best_move, depth);
+        }
+        else if depth == MAX_DEPTH {
+            print_score_only(score);
+            best_move = receiver.bestmove.recv().unwrap_or(best_move);
+            println!("bestmove {best_move}");
         }
 
-        let termination_signal = terminate_print_receiver.try_recv().unwrap_or(false);
+        let termination_signal = receiver.stop.try_recv().unwrap_or(false);
         if termination_signal { return }
 
     }

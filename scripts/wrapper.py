@@ -1,5 +1,6 @@
 from random import sample
 from time import sleep
+import asyncio
 
 from chess import engine, Board, Move
 from chess.polyglot import open_reader
@@ -8,12 +9,14 @@ from chess.polyglot import open_reader
 class ChessEngineWrapper:
     protocol: engine.Protocol = None
     path: str = "../target/release/rust_chess"
-    polling_interval: float = 0.05
+    polling_interval: float = 0.01
+    retries: int = 3
+    transport: asyncio.SubprocessTransport = None; 
 
     async def start(self):
-        if self.protocol is not None:
-            await self.protocol.quit()
-        _, self.protocol = await engine.popen_uci(self.path)
+        if self.transport is not None:
+            self.transport.terminate()
+        self.transport, self.protocol = await engine.popen_uci(self.path)
 
 
     async def analyze_position(self, position: Board, time_limit: float = 0.5) -> (str, dict):
@@ -22,20 +25,39 @@ class ChessEngineWrapper:
 
         bestmove = ""
         result = {}
+        for _ in range(self.retries):
+            try:
+                async with asyncio.timeout(time_limit + 1.0):
+                    with await self.protocol.analysis(position) as analysis:
 
-        with await self.protocol.analysis(position) as analysis:
+                        sleep(time_limit)
 
-            sleep(time_limit)
+                        analysis.stop()
 
-            analysis.stop()
-
-            bestmove  = await analysis.wait()
-            result = analysis.info
+                        bestmove  = await analysis.wait()
+                    
+                        result = analysis.info
+                        
+                        return (bestmove.move, result)
+                
+            except TimeoutError:
+                print("analysis timed out")
         
-        return (bestmove.move, result)
+        raise RuntimeError("unable to complete analysis")
+
+        
     
     async def quit(self):
-        await self.protocol.quit()
+        try:
+            async with asyncio.timeout(1.0):
+                await self.protocol.quit()
+        except TimeoutError as exc:
+            print("engine.quit timed out, terminating SubprocessTransport object")
+            self.transport.terminate()
+
+        self.protocol = None
+        self.transport = None
+
 
     def choose_book_move(self, board: Board, book: str = "books/titans.bin") -> Move | None:
         with open_reader("books/titans.bin") as reader:

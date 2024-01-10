@@ -9,3 +9,4 @@ allowed.challengers
 /scripts/books/*
 /scripts/results/*
 /executables
+*.log

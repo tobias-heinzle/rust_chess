@@ -1,4 +1,5 @@
 import asyncio
+import sys
 from random import sample
 from time import sleep
 from datetime import datetime
@@ -7,33 +8,41 @@ from urllib3.exceptions import InvalidChunkLength, ProtocolError
 
 import berserk
 import chess
+from chess import WHITE, BLACK
 import chess.polyglot
 
 from wrapper import ChessEngineWrapper
 
-RATED_SPEEDS = ["bullet", "blitz", "rapid"]
+ALLOWED_SPEEDS = ["bullet", "blitz", "rapid"]
+
+TIME_DIVIDER = 20
 
             
 class Game():
-    speed_limit = { "bullet" : 0.2,
+    book_speed = {  "bullet" : 0.2,
                     "blitz" : 1.0,
                     "rapid" : 5.0,
                     "classical" : 10.0,
                     'correspondence' : 60.0}
-    
+
     def __init__(self, client, event):
-        self.game_id = event["game"]["gameId"]
+        print(event)
         color = event["game"]['color']
         speed = event["game"]["speed"]
-        self.fen = event["game"]["fen"]
+        current_fen = event["game"]["fen"]
+        self.board = chess.Board()
+        self.board.set_fen(current_fen)
+        
+        self.game_id = event["game"]["gameId"]
         self.is_my_turn = event["game"]["isMyTurn"]
         self.client = client
-        self.color = 1 if color == "white" else 0
-        self.board = chess.Board()
-        self.board.set_fen(self.fen)
+        
+        self.color = WHITE if color == "white" else BLACK
+        self.initial_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+        
         self.book_move_time = 1.0
-        if speed in Game.speed_limit.keys():
-            self.book_move_time = Game.speed_limit[speed]
+        if speed in Game.book_speed.keys():
+            self.book_move_time = Game.book_speed[speed]
 
     async def start(self) -> None:
         print("Game started: " + self.game_id)
@@ -43,8 +52,19 @@ class Game():
         stream = self.client.bots.stream_game_state(self.game_id)
         current_state = next(stream)
 
+        if current_state['initialFen'] != 'startpos':
+            self.initial_fen = current_state['initialFen']
+
+        if self.color == WHITE:
+            seconds = current_state["state"]["wtime"]/1000
+        else:
+            seconds = current_state["state"]["btime"]/1000
+
+        time_limit = seconds / 30
+
         if self.is_my_turn:
-            await self.bot_move(engine)
+            await self.bot_move(engine, time_limit)
+
 
         for event in stream:
             if event['type'] == 'gameState':
@@ -52,40 +72,46 @@ class Game():
                     break
 
                 self.board = chess.Board()
-                
+                self.board.set_fen(self.initial_fen)
+
                 moves_played = event['moves'].split(" ")
+                for move in moves_played:
+                    self.board.push(chess.Move.from_uci(move))
 
-                if len(moves_played) % 2 == self.color:
+                if self.board.turn != self.color:
                     continue  
-
-                if self.color == 1:
+                
+                if self.color == WHITE:
                     time_left = event["wtime"].time()
                 else:
                     time_left = event["btime"].time()
 
                 seconds = (time_left.hour * 60 + time_left.minute) * 60 + time_left.second
-                time_limit = seconds / 30
-
-
-                for move in moves_played:
-                    self.board.push(chess.Move.from_uci(move))
+                time_limit = seconds / TIME_DIVIDER
 
                 await self.bot_move(engine, time_limit)
 
-        await engine.quit()
 
-    async def bot_move(self, engine, time_limit = None):
+        print(f"ID: {self.game_id} finished!")
+        await engine.quit()
+       
+        
+
+    async def bot_move(self, engine, time_limit):
         book_move = engine.choose_book_move(self.board)
 
         if book_move is not None:
             move = book_move
             result = "book move"
-            time_limit = self.book_move_time
-            sleep(time_limit)
+            sleep(self.book_move_time)
         else:
-            if time_limit is None:
-                time_limit = self.book_move_time
-            move, result = await engine.analyze_position(self.board, time_limit)
+            try:
+                async with asyncio.timeout(time_limit + 1.0):
+                    move, result = await engine.analyze_position(self.board, time_limit)
+            except TimeoutError as exc:
+                print("engine.analyze_position timed out! Raising runtime error!")
+                raise RuntimeError from exc
+
         
         self.client.bots.make_move(self.game_id, str(move))
 
@@ -110,10 +136,7 @@ def should_accept(challenge_event) -> bool:
         if challenger in allowed_challengers:
             return True
 
-        # Other challengers may only challenge to rated games
-        elif rated:
-            if speed not in RATED_SPEEDS or variant != "standard":
-                return False
+        if speed in ALLOWED_SPEEDS and variant == "standard":
             return True
         
         return False
@@ -127,24 +150,28 @@ def main_loop():
     session = berserk.TokenSession(token)
     client = berserk.Client(session)
 
+    asyncio.set_event_loop_policy(chess.engine.EventLoopPolicy())
+
     
-    with asyncio.Runner() as runner:
-        for event in client.bots.stream_incoming_events():
+    for event in client.bots.stream_incoming_events():
 
-            if event['type'] == 'challenge':
-                if should_accept(event):
-                    print("Accepted challenge of " + event["challenge"]["challenger"]["id"])
-                    client.bots.accept_challenge(event["challenge"]['id'])
+        if event['type'] == 'challenge':
+            if should_accept(event):
+                print("Accepted challenge of " + event["challenge"]["challenger"]["id"])
+                client.bots.accept_challenge(event["challenge"]['id'])
 
-                else:
-                    client.bots.decline_challenge(event["challenge"]['id'])
+            else:
+                client.bots.decline_challenge(event["challenge"]['id'])
 
-            elif event['type'] == 'gameStart':
-                print(event)
-
+        elif event['type'] == 'gameStart':
+            
+            asyncio.set_event_loop_policy(chess.engine.EventLoopPolicy())
+            with asyncio.Runner() as runner:
                 runner.run(Game(client, event).start())
 
+
 while True:
+    print("lichess-bot booted up!")
     try:     
         main_loop()
     except berserk.exceptions.ApiError as exc:
