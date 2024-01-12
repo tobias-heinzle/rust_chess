@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import sys
 from random import sample
 from time import sleep
@@ -13,9 +14,23 @@ import chess.polyglot
 
 from wrapper import ChessEngineWrapper
 
+
+
 ALLOWED_SPEEDS = ["bullet", "blitz", "rapid"]
 
 TIME_DIVIDER = 20
+
+root = logging.getLogger()
+root.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+root.addHandler(handler)
+
+bot_logger = logging.Logger("lichess-bot")
+bot_logger.addHandler(handler)
 
             
 class Game():
@@ -26,7 +41,7 @@ class Game():
                     'correspondence' : 60.0}
 
     def __init__(self, client, event):
-        print(event)
+        bot_logger.debug("Init game: " + str(event))
         color = event["game"]['color']
         speed = event["game"]["speed"]
         current_fen = event["game"]["fen"]
@@ -45,7 +60,7 @@ class Game():
             self.book_move_time = Game.book_speed[speed]
 
     async def start(self) -> None:
-        print("Game started: " + self.game_id)
+        bot_logger.info("Game started: " + self.game_id)
         engine = ChessEngineWrapper()
         await engine.start()
 
@@ -92,7 +107,7 @@ class Game():
                 await self.bot_move(engine, time_limit)
 
 
-        print(f"ID: {self.game_id} finished!")
+        bot_logger.info(f"ID: {self.game_id} finished!")
         await engine.quit()
        
         
@@ -105,17 +120,12 @@ class Game():
             result = "book move"
             sleep(self.book_move_time)
         else:
-            try:
-                async with asyncio.timeout(time_limit + 1.0):
-                    move, result = await engine.analyze_position(self.board, time_limit)
-            except TimeoutError as exc:
-                print("engine.analyze_position timed out! Raising runtime error!")
-                raise RuntimeError from exc
+            move, result = await engine.analyze_position(self.board, time_limit)
 
         
         self.client.bots.make_move(self.game_id, str(move))
 
-        print("ID: " + str(self.game_id) + " info: " + str(move) + " " + str(result) + " time: " + str(time_limit))
+        bot_logger.info("ID: " + str(self.game_id) + " info: " + str(move) + " " + str(result) + " time: " + str(time_limit))
 
 
 def should_accept(challenge_event) -> bool:
@@ -126,13 +136,13 @@ def should_accept(challenge_event) -> bool:
     game_id = challenge_event["challenge"]["id"]
 
     is_rated = "rated" if rated else "unrated"
-    print(f"{datetime.now()} | challenge by {challenger}; ID: {game_id} - {variant} - {speed} - {is_rated}")
+    bot_logger.info(f"{datetime.now()} | challenge by {challenger}; ID: {game_id} - {variant} - {speed} - {is_rated}")
  
     with open("allowed.challengers") as file:
 
         # These challengers can submit any challenge and it will be accepted
         allowed_challengers = file.read().splitlines()
-        print("allowed_challengers:", allowed_challengers)
+        bot_logger.debug("allowed_challengers:", allowed_challengers)
         if challenger in allowed_challengers:
             return True
 
@@ -157,7 +167,7 @@ def main_loop():
 
         if event['type'] == 'challenge':
             if should_accept(event):
-                print("Accepted challenge of " + event["challenge"]["challenger"]["id"])
+                bot_logger.info("Accepted challenge of " + event["challenge"]["challenger"]["id"])
                 client.bots.accept_challenge(event["challenge"]['id'])
 
             else:
@@ -171,20 +181,20 @@ def main_loop():
 
 
 while True:
-    print("lichess-bot booted up!")
+    bot_logger.info("lichess-bot booted up!")
     try:     
         main_loop()
     except berserk.exceptions.ApiError as exc:
         sleep(1.0)
-        print("Restarting afer berserk ApiError: ", exc)
+        bot_logger.warning("Restarting afer berserk ApiError: ", exc)
         continue
     except RuntimeError as exc:
         sleep(1.0)
-        print("Restarting afer RuntimeError: ", exc)
+        bot_logger.warning("Restarting afer RuntimeError: ", exc)
         continue
     except (ChunkedEncodingError, ProtocolError, InvalidChunkLength) as exc:
         sleep(1.0)
-        print("Restarting afer connection problem: ", exc)
+        bot_logger.warning("Restarting afer connection problem: ", exc)
         continue
     quit()
     

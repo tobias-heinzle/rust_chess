@@ -120,7 +120,7 @@ async def selfplay_loop():
             if verbose:
                 print("b quit")
 
-            print(f"Game {game} done")
+            print(f"Game {game + 1}/{n} done")
 
         except KeyboardInterrupt:
             break

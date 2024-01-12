@@ -3,8 +3,7 @@ use std::{thread, time, io};
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::str::FromStr;
 use chess::{self, ChessMove, Square};
-use std::fs::File;
-use std::io::Write;    
+use log::{info, warn};
 
 use crate::search::{SearchInfo, SearchResult, SearchContext, MATE_THRESHOLD, INFINITY};
 
@@ -59,7 +58,7 @@ impl Printer {
     }
 
     fn result(self, result: SearchResult) -> Printer{
-        let _ = self.info_sender.send( (result.0, result.1, MAX_DEPTH) );
+        let _ = self.info_sender.send( (result.0, result.1, MAX_DEPTH + 1) );
         return self
     }
 
@@ -149,9 +148,7 @@ fn start_search(num_threads: u8,  info_sender: Sender<SearchInfo>, position: &Po
 
 
 pub fn uci_mode(){
-    let path = "logfile.log";
-    let mut logfile = File::create(path).expect("unable to create logfile");
-    write!(logfile, "UCI MODE STARTED\n").expect("unable to write to logifle");
+    info!("uci mode started\n");
 
     let num_threads = 1;
 
@@ -166,10 +163,12 @@ pub fn uci_mode(){
 
     loop {
         let input_line = collect_user_input();
-        write!(logfile, "{}\n", input_line).expect("unable to write to logfile!");
+        info!("{}\n", input_line);
+
         let input: Vec<&str> = input_line.split(" ").collect();
         let command = input[0];
         let arguments = &input[1..];
+        info!("{}\n", command);
 
         if      command == "uci"        { printer = printer.print("uciok"); }
         else if command == "isready"    { printer = printer.print("readyok"); }
@@ -177,12 +176,13 @@ pub fn uci_mode(){
         else if command == "position"   { position = change_position(arguments); }
         else if command == "stop"       { 
             if search_group.is_some(){
-                let result = search_group.unwrap().stop();
-                
+                let result = search_group.unwrap().stop(); 
+                search_group = None;
+                info!("search result: {} - {}\n", result.0, result.1);
                 printer = printer.result(result);
                 printer = printer.bestmove(result.1);
 
-                search_group = None;
+               
             }
         }
         else if command == "quit"       { 
@@ -191,10 +191,11 @@ pub fn uci_mode(){
             if search_group.is_some() {
                 let _ = search_group.unwrap().stop();
             }; 
-            
+            info!("shutting down");
             return
         }
         else if command == "go"         {
+            info!("start search");
             if search_group.is_none() {
                 search_group = Some(start_search(num_threads, printer.info_sender.clone(), &position));
             }; 
@@ -269,10 +270,10 @@ fn printing_loop(receiver: PrinterReceiver){
             (0, ChessMove::new(Square::A1, Square::A1, None), 0)
         );
         
-        if depth > 0 && depth < MAX_DEPTH {    
+        if depth > 0 && depth <= MAX_DEPTH {    
             print_info(score, best_move, depth);
         }
-        else if depth == MAX_DEPTH {
+        else if depth == MAX_DEPTH + 1{
             print_score_only(score);
             best_move = receiver.bestmove.recv().unwrap_or(best_move);
             println!("bestmove {best_move}");
@@ -292,6 +293,9 @@ fn print_info(score: i32, best_move: ChessMove, depth: u8) {
         if score < 0 {
             mate_distance = -mate_distance;
         }
+        else {
+            mate_distance += 1
+        }
         println!("info depth {depth} score mate {mate_distance} pv {best_move}")
     }
     else {
@@ -305,6 +309,9 @@ fn print_score_only(score: i32){
 
         if score < 0 {
             mate_distance = -mate_distance;
+        }
+        else {
+            mate_distance += 1
         }
         println!("info score mate {mate_distance}")
     }
