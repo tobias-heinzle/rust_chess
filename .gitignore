@@ -10,3 +10,4 @@ allowed.challengers
 /scripts/results/*
 /executables
 *.log
+*.notes

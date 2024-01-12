@@ -19,7 +19,7 @@ mod tests {
         
         let result = context.root_search( max_depth);
 
-        assert_eq!(result.1, chess::ChessMove::from_str("f6a6").expect("Invalid Move"));
+        assert_eq!(result.1.to_string(), "f6a6");
         assert_eq!(result.0, rust_chess::search::INFINITY - 2);
         
     }
@@ -33,7 +33,7 @@ mod tests {
         let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
         
         let result = context.root_search( max_depth);
-        assert_eq!(result.1, chess::ChessMove::from_str("c3e5").expect("Invalid Move"));
+        assert_eq!(result.1.to_string(), "c3e5");
         assert_eq!(result.0, rust_chess::search::INFINITY - 2);
         
     }
@@ -65,7 +65,7 @@ mod tests {
         
         let result = context.root_search( max_depth);
         assert_eq!(fen, "6k1/R7/6pp/5p2/P4P2/r3P3/5KPP/8 w - - 0 1");
-        assert!(result.1 != chess::ChessMove::from_str("a7a8").expect("Invalid Move"));
+        assert!(result.1.to_string() != "a7a8");
     }
 
     #[test]
@@ -95,7 +95,7 @@ mod tests {
         let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
         
         let result = context.root_search( max_depth);
-        assert_eq!(result.1, chess::ChessMove::from_str("a1b1").expect("Invalid Move"));
+        assert_eq!(result.1.to_string(), "a1b1");
     
     }
 
@@ -108,21 +108,21 @@ mod tests {
         let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
         
         let result = context.root_search( max_depth);
-        assert_eq!(result.1, chess::ChessMove::from_str("b1c1").expect("Invalid Move"));
+        assert_eq!(result.1.to_string(), "b1c1");
     
     }
 
     
     #[test]
     fn find_critical_endgame_move_part_3() {
-        let board = chess::Board::from_str("8/2k5/3p4/p2P1p2/P2P1P2/8/8/2K5 w - - 4 3").expect("Invalid position");
+        let board = chess::Board::from_str("8/2k5/3p4/p2P1p2/P2P1P2/8/8/2K5 w - - 0 1").expect("Invalid position");
         let max_depth = 18;
         let (_x, rx) = mpsc::channel();
         let (tx, _) = mpsc::channel();
         let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
         
         let result = context.root_search( max_depth);
-        assert_eq!(result.1, chess::ChessMove::from_str("c1d1").expect("Invalid Move"));
+        assert_eq!(result.1.to_string(), "c1d1");
     
     }
     
@@ -137,7 +137,7 @@ mod tests {
         
         let result = context.root_search( max_depth);
 
-        assert_eq!(result.1, chess::ChessMove::from_str("d3h7").expect("Invalid Move"));
+        assert_eq!(result.1.to_string(), "d3h7");
         assert_eq!(result.0, rust_chess::search::INFINITY - 3);
         
     }
@@ -153,7 +153,7 @@ mod tests {
         
         let result = context.root_search( max_depth);
 
-        assert_eq!(result.1, chess::ChessMove::from_str("f1e2").expect("Invalid Move"));
+        assert_eq!(result.1.to_string(), "f1e2");
         assert_eq!(result.0, -rust_chess::search::INFINITY + 1);
         
     }
@@ -169,11 +169,54 @@ mod tests {
         
         let result = context.root_search( max_depth);
 
-        assert_eq!(result.1, chess::ChessMove::from_str("e2e1").expect("Invalid Move"));
+        assert_eq!(result.1.to_string(), "e2e1");
         assert_eq!(result.0, -rust_chess::search::INFINITY + 2);
         
     }
 
+    #[test]
+    fn blunder_vs_myopic_bot_1(){
+        let board = chess::Board::from_str("4r1k1/p2nB2p/4pbp1/1Np5/8/1P3P2/P3KP1P/3R4 w - - 6 26").expect("Invalid position");
+        let max_depth = 8;
+        let (_x, rx) = mpsc::channel();
+        let (tx, _) = mpsc::channel();
+        let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
+        
+        let result = context.root_search( max_depth);
+
+        assert_eq!(result.1.to_string(), "d2d7");
+        
+    }
+
+
+    #[test]
+    fn blunder_vs_myopic_bot_2(){
+        let board = chess::Board::from_str("8/p2N1nk1/8/4pKP1/1P5p/8/P7/8 b - - 1 47").expect("Invalid position");
+        let max_depth = 10;
+        let (_x, rx) = mpsc::channel();
+        let (tx, _) = mpsc::channel();
+        let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
+        
+        let result = context.root_search( max_depth);
+
+        assert_eq!(result.1.to_string(), "a2a4");
+        
+    }
+
+
+    #[test]
+    fn enemy_blunder_of_myopic_bot(){
+        let board = chess::Board::from_str("8/p7/3n2k1/4K1P1/1P6/6N1/P6p/8 b - - 3 51").expect("Invalid position");
+        let max_depth = 11;
+        let (_x, rx) = mpsc::channel();
+        let (tx, _) = mpsc::channel();
+        let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
+        
+        let result = context.root_search( max_depth);
+
+        assert_eq!(result.1.to_string(), "g6g5");
+        
+    }
 
     
     // #[test]

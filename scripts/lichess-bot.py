@@ -18,7 +18,7 @@ from wrapper import ChessEngineWrapper
 
 ALLOWED_SPEEDS = ["bullet", "blitz", "rapid"]
 
-TIME_DIVIDER = 20
+TIME_DIVIDER = 25
 
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
@@ -64,51 +64,54 @@ class Game():
         engine = ChessEngineWrapper()
         await engine.start()
 
-        stream = self.client.bots.stream_game_state(self.game_id)
-        current_state = next(stream)
+        try:
+            stream = self.client.bots.stream_game_state(self.game_id)
+            current_state = next(stream)
 
-        if current_state['initialFen'] != 'startpos':
-            self.initial_fen = current_state['initialFen']
+            if current_state['initialFen'] != 'startpos':
+                self.initial_fen = current_state['initialFen']
 
-        if self.color == WHITE:
-            seconds = current_state["state"]["wtime"]/1000
-        else:
-            seconds = current_state["state"]["btime"]/1000
+            if self.color == WHITE:
+                seconds = current_state["state"]["wtime"]/1000
+            else:
+                seconds = current_state["state"]["btime"]/1000
 
-        time_limit = seconds / 30
+            time_limit = seconds / TIME_DIVIDER
 
-        if self.is_my_turn:
-            await self.bot_move(engine, time_limit)
-
-
-        for event in stream:
-            if event['type'] == 'gameState':
-                if event['status'] != 'started':
-                    break
-
-                self.board = chess.Board()
-                self.board.set_fen(self.initial_fen)
-
-                moves_played = event['moves'].split(" ")
-                for move in moves_played:
-                    self.board.push(chess.Move.from_uci(move))
-
-                if self.board.turn != self.color:
-                    continue  
-                
-                if self.color == WHITE:
-                    time_left = event["wtime"].time()
-                else:
-                    time_left = event["btime"].time()
-
-                seconds = (time_left.hour * 60 + time_left.minute) * 60 + time_left.second
-                time_limit = seconds / TIME_DIVIDER
-
+            if self.is_my_turn:
                 await self.bot_move(engine, time_limit)
 
 
-        bot_logger.info(f"ID: {self.game_id} finished!")
-        await engine.quit()
+            for event in stream:
+                if event['type'] == 'gameState':
+                    if event['status'] != 'started':
+                        break
+
+                    self.board = chess.Board()
+                    self.board.set_fen(self.initial_fen)
+
+                    moves_played = event['moves'].split(" ")
+                    for move in moves_played:
+                        self.board.push(chess.Move.from_uci(move))
+
+                    if self.board.turn != self.color:
+                        continue  
+                    
+                    if self.color == WHITE:
+                        time_left = event["wtime"].time()
+                    else:
+                        time_left = event["btime"].time()
+
+                    seconds = (time_left.hour * 60 + time_left.minute) * 60 + time_left.second
+                    time_limit = seconds / TIME_DIVIDER
+
+                    await self.bot_move(engine, time_limit)
+
+
+            bot_logger.info(f"ID: {self.game_id} finished!")
+            
+        finally:
+            await engine.quit()
        
         
 

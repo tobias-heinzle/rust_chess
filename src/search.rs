@@ -20,13 +20,12 @@ const KNIGHT_VALUE: i32 = 300;
 const BISHOP_VALUE: i32 = 305;
 const ROOK_VALUE: i32 = 450;
 const QUEEN_VALUE: i32 = 900;
-// const PIECE_VALUES: [i32; 6] = [PAWN_VALUE, KNIGHT_VALUE, BISHOP_VALUE, ROOK_VALUE, QUEEN_VALUE, INFINITY];
 
 const PIN_VALUE: i32 = 10;
 const MOBILITY_VALUE: i32 = 1;
 const IN_CHECK_PENALTY: i32 = 30;
 
-// Move ordering
+// Move ordering Most Valuable Victim first, King is a dummy value for quiet moves!
 const MVV_ORDERING: [Piece; 6] = [Piece::Queen, Piece::Rook, Piece::Bishop, Piece::Knight, Piece::Pawn, Piece::King];
 const QS_ORDERING: [Piece; 5] = [Piece::Queen, Piece::Rook, Piece::Bishop, Piece::Knight, Piece::Pawn];
 
@@ -37,16 +36,17 @@ const REP_TABLE_SIZE: usize = 1 << 16;
 const HASH_TABLE_SIZE: usize = 1 << 20;
 
 #[derive(Clone, Copy, PartialEq, PartialOrd)]
-enum ScoreType {
+enum ScoreBound {
     Exact,
     LowerBound,
+    UpperBound,
 }
 
 #[derive(Clone, Copy, PartialEq, PartialOrd)]
 struct HashTableEntry {
     pub best_move: ChessMove,
     pub score: PositionScore,
-    pub score_type: ScoreType,
+    pub score_bound: ScoreBound,
     pub depth: SearchDepth,
 }
 
@@ -56,6 +56,7 @@ pub struct SearchContext {
     // In order to correctly identify a draw by threefold repetition, the SearchContext
     // needs to know the hashes of all previous positions. Also, after initializing, the
     // repetition_table needs to be incremented at the entries corresponding to these positions
+
     pub board: Board,
     pub receiver_channel: mpsc::Receiver<bool>,
     pub sender_channel: mpsc::Sender<SearchInfo>,
@@ -65,8 +66,11 @@ pub struct SearchContext {
     #[new(value = "vec![]")]
     pub past_position_hashes: Vec<u64>,
 
-    #[new(value = "CacheTable::new(HASH_TABLE_SIZE, HashTableEntry{best_move : ChessMove::new(Square::A1, Square::A1, None), score : 0, depth : 0, score_type : ScoreType::LowerBound})")]
+    #[new(value = "CacheTable::new(HASH_TABLE_SIZE, HashTableEntry{best_move : ChessMove::new(Square::A1, Square::A1, None), score : 0, depth : 0, score_bound : ScoreBound::LowerBound})")]
     hash_table: CacheTable<HashTableEntry>,
+
+    #[new(value = "false")]
+    terminate_search: bool,
 } 
 
 impl SearchContext {
@@ -94,7 +98,7 @@ impl SearchContext {
                     alpha = value;
                 }
 
-                if self.receiver_channel.try_recv().unwrap_or(false){ 
+                if self.terminate_search { 
                     break 'iterative_deepening;
                 }
             }
@@ -110,7 +114,10 @@ impl SearchContext {
 
 
 
-    pub fn search(&mut self, board: &Board, depth: SearchDepth, mut alpha: PositionScore, beta: PositionScore) -> PositionScore{
+    pub fn search(&mut self, board: &Board, depth: SearchDepth, mut alpha: PositionScore, mut beta: PositionScore) -> PositionScore{
+
+        if self.terminate_search { return alpha }
+        if self.receiver_channel.try_recv().unwrap_or(false){ self.terminate_search = true; }
 
         if depth <= 0 || board.status() != BoardStatus::Ongoing{
             return self.quiescence_search(board, alpha, beta)
@@ -120,10 +127,14 @@ impl SearchContext {
         if self.already_visited(board.get_hash()){
             return DRAW;
         }
-        
         self.set_visited(board.get_hash());
         
         let mut best_move = ChessMove::new(Square::A1, Square::A1, None);
+        let mut score = - INFINITY;
+
+        // TODO: Check for search extension here:
+        // extra_plies = 1 + search_extension_plies(board) for checks and promotions
+
 
         let table_probe = self.hash_table.get(board.get_hash());
         
@@ -136,14 +147,19 @@ impl SearchContext {
                     return beta
                 }
                 else{
-                    match table_entry.score_type {
-                        ScoreType::Exact => {
+                    match table_entry.score_bound {
+                        ScoreBound::Exact => {
                             self.unset_visited(board.get_hash()); 
-                            return max(alpha, table_entry.score)
+                            return table_entry.score
                         }
-                        ScoreType::LowerBound => {
+                        ScoreBound::LowerBound => {
                             if table_entry.score > alpha {
                                 alpha = table_entry.score
+                            }
+                        }
+                        ScoreBound::UpperBound => {
+                            if table_entry.score < beta {
+                                beta = table_entry.score
                             }
                         }
                     }
@@ -152,17 +168,15 @@ impl SearchContext {
             
             if board.legal(table_entry.best_move){
                 
-                let mut value = - self.search(&board.make_move_new(table_entry.best_move), depth - 1, -beta, -alpha);
+                score = - self.search(&board.make_move_new(table_entry.best_move), depth - 1, -beta, -alpha);
     
-                if value > MATE_THRESHOLD {
-                    value -= 1;
+                if score > MATE_THRESHOLD {
+                    score -= 1;
                 }
 
-                alpha = max(alpha, value);
-                
-                if alpha >= beta { 
+                if score >= beta { 
                     self.unset_visited(board.get_hash());
-                    return beta
+                    return score
                 }
 
                 best_move = table_entry.best_move
@@ -171,11 +185,11 @@ impl SearchContext {
         }
         
         
+        
+        let mut score_bound = ScoreBound::UpperBound;
         let mut iterable = MoveGen::new_legal(board);
-    
-        for piece in MVV_ORDERING {
-            if self.receiver_channel.try_recv().unwrap_or(false){return alpha; }
-
+        
+        'mvv_loop: for piece in MVV_ORDERING {
             iterable.set_iterator_mask( get_targets(&board, piece ));
 
             
@@ -184,32 +198,22 @@ impl SearchContext {
 
                 if chess_move == best_move { continue; }
     
-                let mut value = - self.search(&board.make_move_new(chess_move), depth - 1, -beta, -alpha);
+                let mut value = - self.search(&board.make_move_new(chess_move), depth - 1, -beta, -max(alpha, score));
     
                 if value > MATE_THRESHOLD {
                     value -= 1;
                 }
 
-                if value > alpha {
+                if value > score {
                     best_move = chess_move;
+                    score = value;
+                    score_bound = ScoreBound::Exact;
 
-                    alpha = value;
-                }
-                
-                
-                if alpha >= beta { 
-                    let table_entry = HashTableEntry{
-                        best_move: best_move, 
-                        score: beta, 
-                        depth: depth, 
-                        score_type : ScoreType::LowerBound
-                    };
-
-                    self.hash_table.add(board.get_hash(), table_entry);
-                    self.unset_visited(board.get_hash());
-            
-                    return beta
-                    
+                    if score >= beta { 
+                        score_bound = ScoreBound::LowerBound;
+                        break 'mvv_loop;
+                        
+                    }
                 }
                 
             }
@@ -217,20 +221,20 @@ impl SearchContext {
 
         let table_entry = HashTableEntry{
             best_move: best_move, 
-            score: alpha, 
+            score: score, 
             depth: depth, 
-            score_type : ScoreType::Exact
+            score_bound : score_bound
         };
 
-        self.hash_table.add(board.get_hash(), table_entry);
+        self.hash_table.replace_if(board.get_hash(), table_entry, |old_entry|  if old_entry.depth <= depth {true} else {false});
 
         self.unset_visited(board.get_hash());
 
-        return alpha
+        return score
     }
 
 
-    pub fn quiescence_search(&mut self, board: &Board, mut alpha: PositionScore, beta: PositionScore) -> i32{
+    pub fn quiescence_search(&mut self, board: &Board, mut alpha: PositionScore, mut beta: PositionScore) -> i32{
 
         match board.status() {
             BoardStatus::Checkmate => return -INFINITY,
@@ -242,44 +246,58 @@ impl SearchContext {
             return DRAW;
         }
         
-        alpha = max(evaluate(board), alpha);
-        if alpha >= beta { return beta };
-        
-        self.set_visited(board.get_hash());
+        let mut score = evaluate(board);
+        if score >= beta { return score };
+
 
         let table_probe = self.hash_table.get(board.get_hash());
-        
         if table_probe.is_some() {
             let table_entry = table_probe.unwrap();
 
             if table_entry.score >= beta {
-                self.unset_visited(board.get_hash());
-                return beta;
+                return table_entry.score;
             }
-            
+            else{
+                match table_entry.score_bound {
+                    ScoreBound::Exact => {
+                        return table_entry.score
+                    }
+                    ScoreBound::LowerBound => {
+                        if table_entry.score > alpha {
+                            alpha = table_entry.score
+                        }
+                    }
+                    ScoreBound::UpperBound => {
+                        if table_entry.score < beta {
+                            beta = table_entry.score
+                        }
+                    }
+                }
+            }
         }
+        
+        self.set_visited(board.get_hash());
+
 
         let mut iterable = MoveGen::new_legal(board);
-
         for piece in QS_ORDERING {
 
             iterable.set_iterator_mask( get_targets(board, piece) );
 
             for chess_move in &mut iterable{            
-                let value = - self.quiescence_search(&board.make_move_new(chess_move), -beta, -alpha);
+                
+                score = max(score, - self.quiescence_search(&board.make_move_new(chess_move), -beta, -max(alpha, score)));
 
-                alpha = max(alpha, value);
-
-                if alpha >= beta {
+                if score >= beta {
                     self.unset_visited(board.get_hash());
-                    return beta;
+                    return score;
                 }
                 
             }
         }
 
         self.unset_visited(board.get_hash());
-        return alpha;
+        return score;
 
     }
 
@@ -314,6 +332,10 @@ impl SearchContext {
 
 #[inline]
 fn evaluate(board: &Board) -> PositionScore{
+    // TODO: PSQT for king and pawns interpolate between endgame and earlygame
+    //       Draw by insufficient material
+    //       Endgame bring in king by scoring distance
+
     let mut score = 0;
 
     let all_player =  player_pieces(board);

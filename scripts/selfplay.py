@@ -2,7 +2,19 @@ import argparse
 import asyncio
 import datetime
 import json
-import uuid
+import sys
+import logging
+
+root = logging.getLogger()
+root.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+
+logger = logging.getLogger("chess.engine")
+logger.addHandler(handler)
 
 from chess import Board, WHITE, BLACK
 import chess.engine

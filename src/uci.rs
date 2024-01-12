@@ -26,10 +26,11 @@ impl SearchGroup {
     fn stop(self) -> SearchResult{
 
         for agent in self.agents {
-            send_termination_signal(&agent.stop, 128);
+            send_termination_signal(&agent.stop, 10);
             let _ = agent.handle.join();
         }
-        send_termination_signal(&self.principal.stop, 128);
+
+        send_termination_signal(&self.principal.stop, 10);
 
         let search_result = self.principal.handle.join();
 
