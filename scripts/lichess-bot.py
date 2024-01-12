@@ -142,7 +142,7 @@ def should_accept(challenge_event) -> bool:
 
         # These challengers can submit any challenge and it will be accepted
         allowed_challengers = file.read().splitlines()
-        bot_logger.debug("allowed_challengers:", allowed_challengers)
+        bot_logger.debug(f"allowed_challengers:{allowed_challengers}")
         if challenger in allowed_challengers:
             return True
 
@@ -186,15 +186,15 @@ while True:
         main_loop()
     except berserk.exceptions.ApiError as exc:
         sleep(1.0)
-        bot_logger.warning("Restarting afer berserk ApiError: ", exc)
+        bot_logger.warning(f"Restarting afer berserk ApiError: {exc}")
         continue
     except RuntimeError as exc:
         sleep(1.0)
-        bot_logger.warning("Restarting afer RuntimeError: ", exc)
+        bot_logger.warning(f"Restarting afer RuntimeError: {exc}")
         continue
     except (ChunkedEncodingError, ProtocolError, InvalidChunkLength) as exc:
         sleep(1.0)
-        bot_logger.warning("Restarting afer connection problem: ", exc)
+        bot_logger.warning(f"Restarting afer connection problem: {exc}")
         continue
     quit()
     
