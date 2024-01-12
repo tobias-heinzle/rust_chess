@@ -35,10 +35,10 @@ bot_logger.addHandler(handler)
             
 class Game():
     book_speed = {  "bullet" : 0.2,
-                    "blitz" : 1.0,
-                    "rapid" : 5.0,
-                    "classical" : 10.0,
-                    'correspondence' : 60.0}
+                    "blitz" : 0.5,
+                    "rapid" : 1.0,
+                    "classical" : 1.0,
+                    'correspondence' : 1.0}
 
     def __init__(self, client, event):
         bot_logger.debug("Init game: " + str(event))
