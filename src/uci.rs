@@ -224,6 +224,13 @@ pub fn change_position(arguments: &[&str]) -> Position{
     }
 
     hash_history.push(new_board.get_hash());
+    
+    if moves_index >= arguments.len() {
+        return Position {
+            board : new_board,
+            hash_history : hash_history
+        }; 
+    }
 
     for move_str in &arguments[moves_index + 1 .. ]{
 

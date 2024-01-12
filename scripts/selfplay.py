@@ -49,7 +49,6 @@ async def selfplay_loop():
              "date" : str(datetime.datetime.now()).split('.')[0],
              "engine_a" : name_a,
              "engine_b" : name_b,
-             "errors" : 0,
              "statistics" : {
                  "wins_a" : 0,
                  "wins_b" : 0,
@@ -64,80 +63,60 @@ async def selfplay_loop():
     game = 0
     while True:
 
-        try:
+        await engine_a.start()
+        await engine_b.start()
 
-            await engine_a.start()
-            await engine_b.start()
+        board = Board()
 
-            board = Board()
+        engine_a_color = WHITE if game % 2 == 1 else BLACK
 
-            engine_a_color = WHITE if game % 2 == 1 else BLACK
+        if very_verbose:
+            print(board)
 
-            if very_verbose:
-                print(board)
+        while board.outcome(claim_draw=True) is None:
 
-            while board.outcome(claim_draw=True) is None:
-
-                if board.turn == engine_a_color:
-                    move = engine_a.choose_book_move(board)
-                    result = "book_move"
-                    if move is None: 
-                        move, result = await engine_a.analyze_position(board, time_limit)
-                else:
-                    move = engine_b.choose_book_move(board)
-                    result = "book_move"
-                    if move is None: 
-                        move, result = await engine_b.analyze_position(board, time_limit)
-                
-                board.push(move)
-                
-                if verbose:
-                    print(f"Game {game}: {move} -- {result}")
-                
-                if very_verbose:
-                    print(name_a, "is", engine_a_color, ", opponent is", name_b)
-                    print(board)
-            
-            outcome = board.outcome(claim_draw = True)
-            
-            if outcome.winner == engine_a_color:
-                stats['statistics']['wins_a'] += 1
-            elif outcome.winner == None:
-                stats['statistics']['draws'] += 1
+            if board.turn == engine_a_color:
+                move = engine_a.choose_book_move(board)
+                result = "book_move"
+                if move is None: 
+                    move, result = await engine_a.analyze_position(board, time_limit)
             else:
-                stats['statistics']['wins_b'] += 1
-
-
-            stats['statistics']['total'] += 1
-
-            if verbose:
-                print(outcome)
+                move = engine_b.choose_book_move(board)
+                result = "book_move"
+                if move is None: 
+                    move, result = await engine_b.analyze_position(board, time_limit)
             
-            await engine_a.quit()
+            board.push(move)
+            
             if verbose:
-                print("a quit")
-            await engine_b.quit()
-            if verbose:
-                print("b quit")
-
-            print(f"Game {game + 1}/{n} done")
-
-        except KeyboardInterrupt:
-            break
-        except RuntimeError as exc:
-            raise RuntimeError
-            break
-        # except:
-        #     if verbose:
-        #         print(f"Game {game} failed!")
-        #     stats["errors"] += 1
-        #     game -= 1
+                print(f"Game {game}: {move} -- {result}")
+            
+            if very_verbose:
+                print(name_a, "is", engine_a_color, ", opponent is", name_b)
+                print(board)
         
-        game += 1
+        outcome = board.outcome(claim_draw = True)
+        if outcome.winner == engine_a_color:
+            stats['statistics']['wins_a'] += 1
+        elif outcome.winner == None:
+            stats['statistics']['draws'] += 1
+        else:
+            stats['statistics']['wins_b'] += 1
+        stats['statistics']['total'] += 1
 
+        if verbose:
+            print(outcome)
+        
+        await engine_a.quit()
+        await engine_b.quit()
+
+    
+        game += 1
         if game > n:
             break
-
+        
+        print(f"Game {game + 1}/{n} done")
+        
         with open(f"results/{name_a}_vs_{name_b}_{'_'.join(stats['date'].split(' '))}.json", 'w') as file:
             json.dump(stats, file)
 
