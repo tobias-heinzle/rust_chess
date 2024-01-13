@@ -18,7 +18,7 @@ from wrapper import ChessEngineWrapper
 
 ALLOWED_SPEEDS = ["bullet", "blitz", "rapid"]
 
-TIME_DIVIDER = 25
+TIME_DIVIDER = 20
 
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)

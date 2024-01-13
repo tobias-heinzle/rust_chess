@@ -137,8 +137,8 @@ impl SearchContext {
         let mut best_move = ChessMove::new(Square::A1, Square::A1, None);
         let mut score = - INFINITY;
 
-        // TODO: Check for search extension here:
-        if extend_search(board, plies_extended){
+
+        if extend_check(board, plies_extended){
              depth += 1;
              plies_extended += 1;
         }
@@ -339,7 +339,7 @@ impl SearchContext {
 }
 
 #[inline]
-pub fn extend_search(board: &chess::Board, plies_extended: SearchDepth) -> bool {
+pub fn extend_check(board: &chess::Board, plies_extended: SearchDepth) -> bool {
     if *board.checkers() == EMPTY  {
         return false
     }
