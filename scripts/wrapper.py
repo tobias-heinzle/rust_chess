@@ -25,9 +25,7 @@ class ChessEngineWrapper:
 
         bestmove = ""
         result = {}
-        # for _ in range(self.retries):
-        #     try:
-        #         async with asyncio.timeout(time_limit + 1.0):
+    
         with await self.protocol.analysis(position) as analysis:
 
             sleep(time_limit)
@@ -39,11 +37,7 @@ class ChessEngineWrapper:
             result = analysis.info
             
             return (bestmove.move, result)
-                
-            # except TimeoutError:
-            #     print("analysis timed out")
-        
-        # raise RuntimeError("unable to complete analysis")
+
 
         
     

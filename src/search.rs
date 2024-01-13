@@ -25,7 +25,7 @@ const PIN_VALUE: i32 = 10;
 const MOBILITY_VALUE: i32 = 1;
 const IN_CHECK_PENALTY: i32 = 30;
 
-// Move ordering Most Valuable Victim first, King is a dummy value for quiet moves!
+// Move ordering; Most Valuable Victim first, King is a dummy value for quiet moves!
 const MVV_ORDERING: [Piece; 6] = [Piece::Queen, Piece::Rook, Piece::Bishop, Piece::Knight, Piece::Pawn, Piece::King];
 const QS_ORDERING: [Piece; 5] = [Piece::Queen, Piece::Rook, Piece::Bishop, Piece::Knight, Piece::Pawn];
 
@@ -34,6 +34,9 @@ const REP_TABLE_SIZE: usize = 1 << 16;
 
 // Hash table
 const HASH_TABLE_SIZE: usize = 1 << 20;
+
+// Search Extension
+const MAX_EXTENSION_PLIES: SearchDepth = 3;
 
 #[derive(Clone, Copy, PartialEq, PartialOrd)]
 enum ScoreBound {
@@ -49,6 +52,9 @@ struct HashTableEntry {
     pub score_bound: ScoreBound,
     pub depth: SearchDepth,
 }
+
+
+// TODO: instead of alpha, beta etc. pass an object that encapsulates a search state
 
 #[derive(new)]
 pub struct SearchContext {
@@ -91,7 +97,7 @@ impl SearchContext {
             
             for chess_move in &mut move_vec {
 
-                let value = -self.search(& self.board.make_move_new(*chess_move), depth -1, -INFINITY, -alpha);
+                let value = -self.search(& self.board.make_move_new(*chess_move), depth -1, -INFINITY, -alpha, 0);
 
                 if value > alpha {
                     current_best = *chess_move;
@@ -114,10 +120,9 @@ impl SearchContext {
 
 
 
-    pub fn search(&mut self, board: &Board, depth: SearchDepth, mut alpha: PositionScore, mut beta: PositionScore) -> PositionScore{
+    pub fn search(&mut self, board: &Board, mut depth: SearchDepth, mut alpha: PositionScore, mut beta: PositionScore, mut plies_extended: SearchDepth) -> PositionScore{
 
         if self.terminate_search { return alpha }
-        if self.receiver_channel.try_recv().unwrap_or(false){ self.terminate_search = true; }
 
         if depth <= 0 || board.status() != BoardStatus::Ongoing{
             return self.quiescence_search(board, alpha, beta)
@@ -133,7 +138,11 @@ impl SearchContext {
         let mut score = - INFINITY;
 
         // TODO: Check for search extension here:
-        // extra_plies = 1 + search_extension_plies(board) for checks and promotions
+        if extend_search(board, plies_extended){
+             depth += 1;
+             plies_extended += 1;
+        }
+       
 
 
         let table_probe = self.hash_table.get(board.get_hash());
@@ -168,7 +177,7 @@ impl SearchContext {
             
             if board.legal(table_entry.best_move){
                 
-                score = - self.search(&board.make_move_new(table_entry.best_move), depth - 1, -beta, -alpha);
+                score = - self.search(&board.make_move_new(table_entry.best_move), depth - 1, -beta, -alpha, plies_extended);
     
                 if score > MATE_THRESHOLD {
                     score -= 1;
@@ -190,15 +199,16 @@ impl SearchContext {
         let mut iterable = MoveGen::new_legal(board);
         
         'mvv_loop: for piece in MVV_ORDERING {
-            iterable.set_iterator_mask( get_targets(&board, piece ));
+            if self.receiver_channel.try_recv().unwrap_or(false){ self.terminate_search = true; }
 
-            
+
+            iterable.set_iterator_mask( get_targets(&board, piece ));
             
             for chess_move in &mut iterable{
 
                 if chess_move == best_move { continue; }
     
-                let mut value = - self.search(&board.make_move_new(chess_move), depth - 1, -beta, -max(alpha, score));
+                let mut value = - self.search(&board.make_move_new(chess_move), depth - 1, -beta, -max(alpha, score), plies_extended);
     
                 if value > MATE_THRESHOLD {
                     value -= 1;
@@ -328,13 +338,25 @@ impl SearchContext {
 
 }
 
+#[inline]
+pub fn extend_search(board: &chess::Board, plies_extended: SearchDepth) -> bool {
+    if *board.checkers() == EMPTY  {
+        return false
+    }
+    else if plies_extended < MAX_EXTENSION_PLIES{
+        return true
+    }
+    else {
+        return false 
+    }
+}
 
 
 #[inline]
 fn evaluate(board: &Board) -> PositionScore{
-    // TODO: PSQT for king and pawns interpolate between endgame and earlygame
-    //       Draw by insufficient material
-    //       Endgame bring in king by scoring distance
+    // TODO: PSQT for king (use get king or something like that) and pawns(check how many pawns in an area with &) interpolate between endgame and earlygame
+    //       Draw by insufficient material (no pawns and total material <= bishop)
+    //       Endgame bring in king by scoring distance (len distance between kings is negative, center good, edege bad (via bitmask)) early game corners good via bitmask (skip castling square before castling)
 
     let mut score = 0;
 

@@ -18,7 +18,7 @@ mod tests {
         
         let result = context.quiescence_search(&board, alpha, beta);
 
-        assert_eq!(result, -(rust_chess::search::INFINITY - 1));
+        assert_eq!(result, -(rust_chess::search::INFINITY));
     }
 
    
@@ -48,6 +48,33 @@ mod tests {
         let resulting_position = "8/6Bk/8/8/8/8/7P/7K b - - 0 1".to_string();
         assert_eq!(format!("{new_board}"), resulting_position)
 
+    }
+
+    #[test]
+    fn test_extensions_in_check(){
+        let board = chess::Board::from_str("r7/ppp3k1/6b1/3pQ3/5R2/1P4P1/P5PP/6K1 b - - 4 43").expect("Invalid position");
+
+        let extension = rust_chess::search::extend_search(&board, 0);
+
+        assert_eq!(extension, true);
+    }
+
+    #[test]
+    fn test_extensions_not_in_check(){
+        let board = chess::Board::from_str("r5k1/ppp5/5Qb1/3p4/5R2/1P4P1/P5PP/6K1 b - - 6 44").expect("Invalid position");
+
+        let extension = rust_chess::search::extend_search(&board, 0);
+
+        assert_eq!(extension, false);
+    }
+
+    #[test]
+    fn test_extensions_one_to_many(){
+        let board = chess::Board::from_str("r5k1/ppp5/5Qb1/3p4/5R2/1P4P1/P5PP/6K1 b - - 6 44").expect("Invalid position");
+
+        let extension = rust_chess::search::extend_search(&board, 3);
+
+        assert_eq!(extension, false);
     }
 
 }

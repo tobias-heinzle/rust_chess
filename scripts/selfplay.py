@@ -5,17 +5,6 @@ import json
 import sys
 import logging
 
-root = logging.getLogger()
-root.setLevel(logging.DEBUG)
-
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-
-logger = logging.getLogger("chess.engine")
-logger.addHandler(handler)
-
 from chess import Board, WHITE, BLACK
 import chess.engine
 from wrapper import ChessEngineWrapper
@@ -52,6 +41,18 @@ n = int(args.n_games)
 
 assert(n > 0)
 assert(time_limit > 0)
+
+root = logging.getLogger()
+if very_verbose:
+    root.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+
+logger = logging.getLogger("chess.engine")
+logger.addHandler(handler)
 
 
 async def selfplay_loop():
@@ -108,16 +109,25 @@ async def selfplay_loop():
                 print(board)
         
         outcome = board.outcome(claim_draw = True)
+        winner = None
         if outcome.winner == engine_a_color:
+            if verbose:
+                print(f"Game {game}: win for {name_a}")
+            winner = name_a
             stats['statistics']['wins_a'] += 1
         elif outcome.winner == None:
+            if verbose:
+                print(f"Game {game}: draw")
             stats['statistics']['draws'] += 1
         else:
+            if verbose:
+                print(f"Game {game}: win for {name_b}")
+            winner = name_b
             stats['statistics']['wins_b'] += 1
         stats['statistics']['total'] += 1
 
         if verbose:
-            print(outcome)
+            print(f"Game {game}: {outcome}")
         
         await engine_a.quit()
         await engine_b.quit()
@@ -127,7 +137,7 @@ async def selfplay_loop():
         if game > n:
             break
         
-        print(f"Game {game + 1}/{n} done")
+        print(f"Game {game + 1}/{n} done - outcome: {'win for ' + winner if winner is not None else 'draw' }")
         
         with open(f"results/{name_a}_vs_{name_b}_{'_'.join(stats['date'].split(' '))}.json", 'w') as file:
             json.dump(stats, file)
