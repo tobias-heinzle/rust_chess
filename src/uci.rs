@@ -269,7 +269,7 @@ fn printing_loop(receiver: PrinterReceiver){
     let update_interval = time::Duration::from_millis(10);
 
     loop {
-        thread::sleep(update_interval);
+        sleep(update_interval);
 
         let message = receiver.str.try_recv().unwrap_or("".to_string());
         if message.len() > 0 { println!("{message}"); }

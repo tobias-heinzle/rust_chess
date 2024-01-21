@@ -38,19 +38,20 @@ const HASH_TABLE_SIZE: usize = 1 << 20;
 // Search Extension
 const MAX_EXTENSION_PLIES: SearchDepth = 3;
 
+
 #[derive(Clone, Copy, PartialEq, PartialOrd)]
-enum ScoreBound {
+pub enum ScoreBound {
     Exact,
-    LowerBound,
     UpperBound,
+    LowerBound,
 }
 
 #[derive(Clone, Copy, PartialEq, PartialOrd)]
-struct HashTableEntry {
-    pub best_move: ChessMove,
-    pub score: PositionScore,
-    pub score_bound: ScoreBound,
+pub struct HashTableEntry {
     pub depth: SearchDepth,
+    pub score_bound: ScoreBound,
+    pub score: PositionScore,
+    pub best_move: ChessMove,
 }
 
 
@@ -237,7 +238,7 @@ impl SearchContext {
         };
 
         self.hash_table.replace_if(board.get_hash(), table_entry, |old_entry|  if old_entry.depth <= depth {true} else {false});
-
+        
         self.unset_visited(board.get_hash());
 
         return score
