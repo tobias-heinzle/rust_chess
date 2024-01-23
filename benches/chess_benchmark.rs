@@ -88,6 +88,8 @@ fn startpos_3_parallel(c: &mut Criterion) {
 
     let num_threads = 2;
 
+    // TODO: change maybe move order to exploit table
+
     let mut position = Position{
         board : board,
         hash_history : vec![],
@@ -110,7 +112,7 @@ fn startpos_3_parallel(c: &mut Criterion) {
     for _ in 0 .. num_threads - 1 {
         let (mut agent_context, agent_stop_sender) = create_search_context(dummy_sender.clone(), &position, hash_table.clone());
         let agent = SearchAgent{
-            handle : thread::spawn(move || agent_context.root_search(7)), 
+            handle : thread::spawn(move || agent_context.root_search(6)), 
             stop : agent_stop_sender
         };
 
