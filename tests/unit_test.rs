@@ -1,7 +1,29 @@
 use std::str::FromStr;
-use std::sync::mpsc;
+use std::sync::{Arc, mpsc};
 use rust_chess;
 use chess;
+use rust_chess::table::{TableEntryData, TranspositionTable};
+
+
+fn setup_test_context(board: chess::Board) -> rust_chess::search::SearchContext {
+    let (_, rx) = mpsc::channel();
+    let (tx, _) = mpsc::channel();
+    let hash_table = Arc::new(
+        TranspositionTable::new(
+            rust_chess::uci::HASH_TABLE_SIZE, 
+            TableEntryData{
+                best_move : chess::ChessMove::new(
+                    chess::Square::A1, 
+                    chess::Square::A1, 
+                    None), 
+                score : 0, 
+                depth : 0, 
+                score_bound : rust_chess::table::ScoreBound::LowerBound}
+            )
+        );
+    
+    return rust_chess::search::SearchContext::new(board, rx, tx, Arc::clone(&hash_table));
+}
 
 #[cfg(test)]
 mod tests {
@@ -12,10 +34,8 @@ mod tests {
         let board = chess::Board::from_str("R6k/6rp/5B2/8/8/8/7P/7K b - - 0 3").expect("Invalid position");
         let alpha = 0;
         let beta = 100;
-        let (_, rx) = mpsc::channel();
-        let (tx, _) = mpsc::channel();
-        let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
-        
+        let mut context = setup_test_context(board);
+
         let result = context.quiescence_search(&board, alpha, beta);
 
         assert_eq!(result, -(rust_chess::search::INFINITY));
@@ -27,11 +47,8 @@ mod tests {
         let board = chess::Board::from_str("7k/6Rp/7B/8/8/8/7P/7K b - - 0 1").expect("Invalid position");
         let alpha = 0;
         let beta = 100;
+        let mut context = setup_test_context(board);
 
-        let (_, rx) = mpsc::channel();
-        let (tx, _) = mpsc::channel();
-        let mut context = rust_chess::search::SearchContext::new(board, rx, tx);
-        
         let result = context.quiescence_search(&board, alpha, beta);
 
         assert_eq!(result, 0);

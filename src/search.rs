@@ -2,10 +2,9 @@
 use std::cmp::max;
 use std::sync::{Arc, mpsc};
 use derive_new::new;
-use chess::{Board, MoveGen, Piece, ChessMove, Square, BoardStatus, EMPTY, BitBoard, CacheTable};
+use chess::{Board, MoveGen, Piece, ChessMove, Square, BoardStatus, EMPTY, BitBoard}; //, CacheTable};
 
-use crate::table::TranspositionTable;
-// use crate::table::{ScoreBound, SharedArray,TableEntry};
+use crate::table::{TableReference, TranspositionTable, TableEntryData, ScoreBound};
 
 pub type PositionScore = i32;
 pub type SearchDepth = u8;
@@ -39,25 +38,6 @@ const REP_TABLE_SIZE: usize = 1 << 16;
 // Search Extension
 const MAX_EXTENSION_PLIES: SearchDepth = 3;
 
-// Hash table
-const HASH_TABLE_SIZE: usize = 1 << 20;
-
-#[derive(Clone, Copy, PartialEq, PartialOrd)]
-pub enum ScoreBound {
-    Exact,
-    UpperBound,
-    LowerBound,
-}
-
-#[derive(Clone, Copy, PartialEq, PartialOrd)]
-pub struct HashTableEntry {
-    pub depth: SearchDepth,
-    pub score_bound: ScoreBound,
-    pub score: PositionScore,
-    pub best_move: ChessMove,
-}
-
-
 // TODO: instead of alpha, beta etc. pass an object that encapsulates a search state
 
 #[derive(new)]
@@ -70,18 +50,12 @@ pub struct SearchContext {
     pub board: Board,
     pub receiver_channel: mpsc::Receiver<bool>,
     pub sender_channel: mpsc::Sender<SearchInfo>,
+    pub hash_table: TableReference,
 
     #[new(value = "[0; REP_TABLE_SIZE]")]
     pub repetition_table: [u8; REP_TABLE_SIZE],
     #[new(value = "vec![]")]
     pub past_position_hashes: Vec<u64>,
-
-    // #[new(value = "CacheTable::new(HASH_TABLE_SIZE, HashTableEntry{best_move : ChessMove::new(Square::A1, Square::A1, None), score : 0, depth : 0, score_bound : ScoreBound::LowerBound})")]
-    // hash_table: CacheTable<HashTableEntry>,
-    // #[new(value = "TranspositionTable::new(Arc::new(SharedArray::new(TableEntry{hash : 0, best_move : ChessMove::new(Square::A1, Square::A1, None), score : 0, depth : 0, score_bound : ScoreBound::LowerBound})))")]
-    // hash_table: TranspositionTable,
-    #[new(value = "TranspositionTable::new(HASH_TABLE_SIZE, HashTableEntry{best_move : ChessMove::new(Square::A1, Square::A1, None), score : 0, depth : 0, score_bound : ScoreBound::LowerBound})")]
-    hash_table: TranspositionTable<HashTableEntry>,
 
     #[new(value = "false")]
     terminate_search: bool,
@@ -237,15 +211,7 @@ impl SearchContext {
             }
         }
 
-        // let table_entry = TableEntry{
-        //     hash : board.get_hash(),
-        //     best_move: best_move, 
-        //     score: score, 
-        //     depth: depth, 
-        //     score_bound : score_bound
-        // };
-
-        let table_entry = HashTableEntry{
+        let table_entry = TableEntryData{
             best_move: best_move, 
             score: score, 
             depth: depth, 
