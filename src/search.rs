@@ -1,10 +1,11 @@
 
 use std::cmp::max;
-use std::sync::{Arc, mpsc};
+use std::sync::mpsc;
 use derive_new::new;
-use chess::{Board, MoveGen, Piece, ChessMove, Square, BoardStatus, EMPTY, BitBoard}; //, CacheTable};
+use chess::{Board, MoveGen, Piece, ChessMove, Square, BoardStatus, EMPTY, BitBoard};
 
-use crate::table::{TableReference, TranspositionTable, TableEntryData, ScoreBound};
+use crate::table::{TranspositionTable, TableEntryData, ScoreBound};
+use crate::eval::evaluate;
 
 pub type PositionScore = i32;
 pub type SearchDepth = u8;
@@ -16,16 +17,6 @@ pub const INFINITY: i32 = 1000000;
 pub const DRAW: i32 = 0;
 pub const MATE_MARGIN: i32 = 100;
 pub const MATE_THRESHOLD: i32 = INFINITY - MATE_MARGIN;
-
-const PAWN_VALUE: i32 = 80;
-const KNIGHT_VALUE: i32 = 300;
-const BISHOP_VALUE: i32 = 305;
-const ROOK_VALUE: i32 = 450;
-const QUEEN_VALUE: i32 = 900;
-
-const PIN_VALUE: i32 = 10;
-const MOBILITY_VALUE: i32 = 1;
-const IN_CHECK_PENALTY: i32 = 30;
 
 // Move ordering; Most Valuable Victim first, King is a dummy value for quiet moves!
 const MVV_ORDERING: [Piece; 6] = [Piece::Queen, Piece::Rook, Piece::Bishop, Piece::Knight, Piece::Pawn, Piece::King];
@@ -50,7 +41,7 @@ pub struct SearchContext {
     pub board: Board,
     pub receiver_channel: mpsc::Receiver<bool>,
     pub sender_channel: mpsc::Sender<SearchInfo>,
-    pub hash_table: TableReference,
+    pub hash_table: TranspositionTable,
 
     #[new(value = "[0; REP_TABLE_SIZE]")]
     pub repetition_table: [u8; REP_TABLE_SIZE],
@@ -210,6 +201,9 @@ impl SearchContext {
                 
             }
         }
+        
+        self.unset_visited(board.get_hash());
+        if self.terminate_search { return score }
 
         let table_entry = TableEntryData{
             best_move: best_move, 
@@ -220,8 +214,6 @@ impl SearchContext {
 
         self.hash_table.replace_if(board.get_hash(), table_entry, |old_entry|  if old_entry.depth <= depth {true} else {false});
         
-        self.unset_visited(board.get_hash());
-
         return score
     }
 
@@ -335,81 +327,6 @@ pub fn extend_check(board: &chess::Board, plies_extended: SearchDepth) -> bool {
 
 
 #[inline]
-fn evaluate(board: &Board) -> PositionScore{
-    // TODO: PSQT for king (use get king or something like that) and pawns(check how many pawns in an area with &) interpolate between endgame and earlygame
-    //       Draw by insufficient material (no pawns and total material <= bishop)
-    //       Endgame bring in king by scoring distance (len distance between kings is negative, center good, edege bad (via bitmask)) early game corners good via bitmask (skip castling square before castling)
-
-    let mut score = 0;
-
-    let all_player =  player_pieces(board);
-    let all_opponent =  opponent_pieces(board);
-    let blockers = all_player | all_opponent;
-
-    // Pawn evaluation
-    let mut player = board.pieces(Piece::Pawn) & all_player;
-    let mut opponent = board.pieces(Piece::Pawn) & all_opponent;
-
-    score += PAWN_VALUE * (player.popcnt() as i32 - opponent.popcnt() as i32);
-
-    // Knight evalutation
-    player = board.pieces(Piece::Knight) & all_player;
-    opponent = board.pieces(Piece::Knight) & all_opponent;
-
-    score += KNIGHT_VALUE * (player.popcnt() as i32 - opponent.popcnt() as i32);
-    
-    for square in player {
-        score += MOBILITY_VALUE * chess::get_knight_moves(square).popcnt() as i32;
-    }
-    for square in opponent {
-        score -= MOBILITY_VALUE * chess::get_knight_moves(square).popcnt() as i32;
-    }
-
-    // Bishop evalutation
-    player = board.pieces(Piece::Bishop) & all_player;
-    opponent = board.pieces(Piece::Bishop) & all_opponent;
-
-    score += BISHOP_VALUE * (player.popcnt() as i32 - opponent.popcnt() as i32);
-    
-    for square in player {
-        score += MOBILITY_VALUE * chess::get_bishop_moves(square, blockers).popcnt() as i32;
-    }
-    for square in opponent {
-        score -= MOBILITY_VALUE * chess::get_bishop_moves(square, blockers).popcnt() as i32;
-    }
-
-    // Rook evalutation
-    player = board.pieces(Piece::Rook) & all_player;
-    opponent = board.pieces(Piece::Rook) & all_opponent;
-
-    score += ROOK_VALUE * (player.popcnt() as i32 - opponent.popcnt() as i32);
-    
-    for square in player {
-        score += MOBILITY_VALUE * chess::get_rook_moves(square, blockers).popcnt() as i32;
-    }
-    for square in opponent {
-        score -= MOBILITY_VALUE * chess::get_rook_moves(square, blockers).popcnt() as i32;
-    }
-
-    // Queen evaluation
-    player = board.pieces(Piece::Queen) & all_player;
-    opponent = board.pieces(Piece::Queen) & all_opponent;
-
-    score += QUEEN_VALUE * (player.popcnt() as i32 - opponent.popcnt() as i32);
-
-    score += PIN_VALUE * (board.pinned() & all_opponent).popcnt() as i32;
-    score -= PIN_VALUE * (board.pinned() & all_player).popcnt() as i32;
-
-    if *board.checkers() != EMPTY{
-        score -= IN_CHECK_PENALTY;
-    }
-
-    return score;
-
-}
-
-
-#[inline]
 fn get_legal_moves_vector(board: &Board) -> Vec<ChessMove>{
     let mut iterable = MoveGen::new_legal(board);
 
@@ -435,11 +352,11 @@ fn get_targets(board: &Board, pieces: Piece) -> BitBoard{
 
 
 #[inline]
-fn opponent_pieces(board: &Board) -> BitBoard {
+pub fn opponent_pieces(board: &Board) -> BitBoard {
     return *board.color_combined(!board.side_to_move()); 
 }
 
 #[inline]
-fn player_pieces(board: &Board) -> BitBoard {
+pub fn player_pieces(board: &Board) -> BitBoard {
     return *board.color_combined(board.side_to_move()); 
 }

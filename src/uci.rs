@@ -1,17 +1,18 @@
-use std::thread::{JoinHandle, sleep};
-use std::{hash, io, thread, time};
-use std::sync::mpsc::{self, Receiver, Sender};
-use std::sync::Arc;
 use std::str::FromStr;
-use chess::{self, ChessMove, Square};
-use log::{info, warn};
+use std::thread::{JoinHandle, sleep};
+use std::{io, thread, time};
+use std::sync::mpsc::{channel, Receiver, Sender};
+use log::info;
+use chess::{ChessMove, Square};
 
 use crate::search::{SearchInfo, SearchResult, SearchContext, MATE_THRESHOLD, INFINITY};
-use crate::table::{ScoreBound, TableEntryData, TableReference, TranspositionTable};
+use crate::table::{ScoreBound, TableEntryData, TranspositionTable};
 
 const STOP_SIGNAL: bool = true;
 const MAX_DEPTH: u8 = 64;
 pub const HASH_TABLE_SIZE: usize = 1 << 20;
+
+const THREAD_COUNT: u8 = 1;
 
 // TODO: Change this code to use the Game Struct from chess crate   
 pub struct Position {
@@ -25,6 +26,8 @@ pub struct SearchGroup {
 }
 
 impl SearchGroup {
+
+    // TODO: add new and start method, think what handle should be
 
     pub fn stop(self) -> SearchResult{
 
@@ -40,9 +43,10 @@ impl SearchGroup {
         return search_result.unwrap();
     }
 
-    pub fn wait(self) -> SearchResult{
+    pub fn await_principal(self) -> SearchResult{
 
         for agent in self.agents {
+            send_termination_signal(&agent.stop, 10);
             let _ = agent.handle.join();
         }
 
@@ -53,6 +57,9 @@ impl SearchGroup {
 }
 
 pub struct SearchAgent {
+
+    // TODO: implement new and start also for agent, handle should be an Option<JoinHandle>
+
     pub stop: Sender<bool>,
     pub handle: JoinHandle<SearchResult>,
 }
@@ -97,10 +104,10 @@ struct PrinterReceiver {
 
 
 fn build_printer() -> Printer{
-    let (print_sender, print_receiver) = mpsc::channel();
-    let (info_sender, info_receiver) = mpsc::channel();
-    let (bestmove_sender, bestmove_reveicer) = mpsc::channel(); 
-    let (stop_sender, stop_receiver) = mpsc::channel();
+    let (print_sender, print_receiver) = channel();
+    let (info_sender, info_receiver) = channel();
+    let (bestmove_sender, bestmove_reveicer) = channel(); 
+    let (stop_sender, stop_receiver) = channel();
 
     let receiver = PrinterReceiver{str : print_receiver, info : info_receiver, bestmove : bestmove_reveicer, stop : stop_receiver};
     
@@ -112,8 +119,8 @@ fn build_printer() -> Printer{
     return printer;
 }
 
-pub fn create_search_context (info_sender: Sender<SearchInfo>, position : &Position, hash_table : TableReference ) -> (SearchContext, Sender<bool>) {
-    let (stop_sender, stop_receiver) = mpsc::channel();
+pub fn create_search_context (info_sender: Sender<SearchInfo>, position : &Position, hash_table : TranspositionTable ) -> (SearchContext, Sender<bool>) {
+    let (stop_sender, stop_receiver) = channel();
 
     // let hash_table = Arc::new(TranspositionTable::new(HASH_TABLE_SIZE, TableEntryData{best_move : ChessMove::new(Square::A1, Square::A1, None), score : 0, depth : 0, score_bound : ScoreBound::LowerBound}));
     
@@ -132,9 +139,19 @@ pub fn create_search_context (info_sender: Sender<SearchInfo>, position : &Posit
 
 fn start_search(num_threads: u8,  info_sender: Sender<SearchInfo>, position: &Position) -> SearchGroup {
 
+    // TODO: Refactor search group to use ::new, add start method and handle should be an Option
+    
     assert!(num_threads > 0);
 
-    let hash_table = TableReference::new(TranspositionTable::new(HASH_TABLE_SIZE, TableEntryData{best_move : ChessMove::new(Square::A1, Square::A1, None), score : 0, depth : 0, score_bound : ScoreBound::LowerBound}));
+    let hash_table = TranspositionTable::new(
+        HASH_TABLE_SIZE, 
+        TableEntryData{best_move : ChessMove::new(Square::A1, Square::A1, None), 
+            score : 0, 
+            depth : 0, 
+            score_bound : 
+            ScoreBound::LowerBound
+        }
+    );
     
     let (mut context, stop_sender) = create_search_context(info_sender, position, hash_table.clone());
 
@@ -145,7 +162,7 @@ fn start_search(num_threads: u8,  info_sender: Sender<SearchInfo>, position: &Po
     
     let mut agents:  Vec<SearchAgent> = vec![];
 
-    let (dummy_sender, _) = mpsc::channel();
+    let (dummy_sender, _) = channel();
 
     for _ in 0 .. num_threads - 1 {
         let (mut agent_context, agent_stop_sender) = create_search_context(dummy_sender.clone(), position, hash_table.clone());
@@ -169,8 +186,6 @@ fn start_search(num_threads: u8,  info_sender: Sender<SearchInfo>, position: &Po
 
 pub fn uci_mode(){
     info!("uci mode started\n");
-
-    let num_threads = 1;
 
     let mut position = Position{
         board : chess::Board::default(),
@@ -217,7 +232,7 @@ pub fn uci_mode(){
         else if command == "go"         {
             info!("start search");
             if search_group.is_none() {
-                search_group = Some(start_search(num_threads, printer.info_sender.clone(), &position));
+                search_group = Some(start_search(THREAD_COUNT, printer.info_sender.clone(), &position));
             }; 
         }
 

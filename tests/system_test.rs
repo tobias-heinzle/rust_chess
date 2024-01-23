@@ -1,28 +1,9 @@
 use std::str::FromStr;
-use std::sync::{Arc, mpsc};
 use rust_chess;
 use chess;
 
+use rust_chess::test_utils::setup_test_context;
 
-fn setup_test_context(board: chess::Board) -> rust_chess::search::SearchContext {
-    let (_, rx) = mpsc::channel();
-    let (tx, _) = mpsc::channel();
-    let hash_table = Arc::new(
-        rust_chess::table::TranspositionTable::new(
-            rust_chess::uci::HASH_TABLE_SIZE, 
-            rust_chess::table::TableEntryData{
-                best_move : chess::ChessMove::new(
-                    chess::Square::A1, 
-                    chess::Square::A1, 
-                    None), 
-                score : 0, 
-                depth : 0, 
-                score_bound : rust_chess::table::ScoreBound::LowerBound}
-            )
-        );
-    
-    return rust_chess::search::SearchContext::new(board, rx, tx, Arc::clone(&hash_table));
-}
 
 #[cfg(test)]
 mod tests {

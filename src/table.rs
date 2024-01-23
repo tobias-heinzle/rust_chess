@@ -1,16 +1,12 @@
 
 use std::sync::{Arc, RwLock};
 use chess::ChessMove;
-// use chess::{Square, CacheTable};
+use chess::CacheTable;
 use crate::search::{PositionScore, SearchDepth};
 
-// pub type TranspositionTable<T> = CacheTable<T>;
-// pub type TableReference = TranspositionTable<TableEntryData>;
+// pub type TranspositionTable = CacheTable<TableEntryData>;
 
-
-pub type TranspositionTable<T> = SharedTable<T>;
-pub type TableReference = Arc<TranspositionTable<TableEntryData>>;
-
+pub type TranspositionTable = SharedTable<TableEntryData>;
 
 #[derive(Clone, Copy, PartialEq, PartialOrd)]
 pub enum ScoreBound {
@@ -84,3 +80,12 @@ impl<T: Copy + Clone + PartialEq + PartialOrd> SharedTable<T> {
     }
 }
 
+
+impl<T: Copy + Clone + PartialEq + PartialOrd> Clone for SharedTable<T> {
+    fn clone(&self) -> Self {
+        SharedTable{
+            table : self.table.clone(),
+            mask : self.mask
+        }
+    }
+}
