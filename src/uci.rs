@@ -10,7 +10,7 @@ use crate::table::{ScoreBound, TableEntryData, TranspositionTable};
 
 const STOP_SIGNAL: bool = true;
 const MAX_DEPTH: u8 = 64;
-pub const HASH_TABLE_SIZE: usize = 1 << 20;
+pub const HASH_TABLE_SIZE: usize = 1 << 22;
 
 const THREAD_COUNT: u8 = 1;
 

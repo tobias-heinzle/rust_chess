@@ -13,7 +13,7 @@ use rust_chess::uci::{SearchAgent, SearchGroup, Position, create_search_context,
 
 use rust_chess::test_utils::setup_test_context;
 
-const BENCHMARK_THREAD_COUNT : u8 = 4;
+const BENCHMARK_THREAD_COUNT : u8 = 8;
 
 fn startpos(c: &mut Criterion) {
     let board = chess::Board::default();
@@ -352,18 +352,18 @@ criterion_group!(benches,
     // startpos, 
     // startpos_1,
     // startpos_2,
-    startpos_3,
-    startpos_3_parallel,
-    mate_in_3,
-    mate_in_3_parallel,
+    // startpos_3,
+    // startpos_3_parallel,
+    // mate_in_3,
+    // mate_in_3_parallel,
     // endgame,
     // endgame_1,
     // endgame_2,
     // mate_in_7,
     // custom, 
-    // middlegame,
-    // middlegame_1,
-    // middlegame_2,
+    middlegame,
+    middlegame_1,
+    middlegame_2,
     // stalemate,
     // chezzz, 
     // liberman,
