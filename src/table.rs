@@ -1,7 +1,7 @@
 
 use std::sync::{Arc, RwLock};
 use chess::ChessMove;
-use chess::CacheTable;
+// use chess::CacheTable;
 use crate::search::{PositionScore, SearchDepth};
 
 // pub type TranspositionTable = CacheTable<TableEntryData>;
