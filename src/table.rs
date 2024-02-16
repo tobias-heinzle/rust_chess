@@ -1,6 +1,5 @@
-
-use std::sync::{Arc, RwLock};
 use chess::ChessMove;
+use std::sync::{Arc, RwLock};
 // use chess::CacheTable;
 use crate::search::{PositionScore, SearchDepth};
 
@@ -23,7 +22,6 @@ pub struct TableEntryData {
     pub best_move: ChessMove,
 }
 
-
 #[derive(Copy, Clone, PartialEq, PartialOrd)]
 struct TableEntry<T: Copy + Clone + PartialEq + PartialOrd> {
     hash: u64,
@@ -39,7 +37,12 @@ impl<T: Copy + Clone + PartialEq + PartialOrd> SharedTable<T> {
     #[inline]
     pub fn new(size: usize, default: T) -> SharedTable<T> {
         let values: Vec<_> = (0..size)
-            .map(|_| RwLock::new(TableEntry { hash: 0, data: default }))
+            .map(|_| {
+                RwLock::new(TableEntry {
+                    hash: 0,
+                    data: default,
+                })
+            })
             .collect();
 
         SharedTable {
@@ -68,7 +71,6 @@ impl<T: Copy + Clone + PartialEq + PartialOrd> SharedTable<T> {
         table_entry.data = entry;
     }
 
-
     #[inline(always)]
     pub fn replace_if<F: Fn(T) -> bool>(&self, hash: u64, entry: T, replace: F) {
         let idx = (hash as usize) & self.mask;
@@ -80,12 +82,11 @@ impl<T: Copy + Clone + PartialEq + PartialOrd> SharedTable<T> {
     }
 }
 
-
 impl<T: Copy + Clone + PartialEq + PartialOrd> Clone for SharedTable<T> {
     fn clone(&self) -> Self {
-        SharedTable{
-            table : self.table.clone(),
-            mask : self.mask
+        SharedTable {
+            table: self.table.clone(),
+            mask: self.mask,
         }
     }
 }

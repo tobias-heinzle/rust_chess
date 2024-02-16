@@ -4,7 +4,7 @@ use std::cmp::max;
 use std::sync::mpsc;
 
 use crate::eval::evaluate;
-use crate::table::{self, ScoreBound, TableEntryData, TranspositionTable};
+use crate::table::{ScoreBound, TableEntryData, TranspositionTable};
 
 pub type PositionScore = i32;
 pub type SearchDepth = u8;
@@ -119,7 +119,7 @@ impl SearchContext {
         if self.terminate_search {
             return alpha;
         }
-        
+
         if self.already_visited(board.get_hash()) {
             return DRAW;
         }
@@ -127,12 +127,12 @@ impl SearchContext {
         if depth <= 0 || board.status() != BoardStatus::Ongoing {
             return self.quiescence_search(board, alpha, beta);
         }
-        
+
         if extend_check(board, plies_extended) {
             depth += 1;
             plies_extended += 1;
         }
-        
+
         let mut best_move = ChessMove::new(Square::A1, Square::A1, None);
         let table_probe = self.hash_table.get(board.get_hash());
 
@@ -164,7 +164,7 @@ impl SearchContext {
             if alpha >= beta {
                 return beta;
             }
-            
+
             if board.legal(table_entry.best_move) {
                 self.set_visited(board.get_hash());
 
@@ -208,7 +208,7 @@ impl SearchContext {
                 if chess_move == best_move {
                     continue;
                 }
-                
+
                 let mut value = -self.search(
                     &board.make_move_new(chess_move),
                     depth - 1,
@@ -258,8 +258,8 @@ impl SearchContext {
 
         return match score_bound {
             ScoreBound::LowerBound => beta,
-            _ => alpha
-        }
+            _ => alpha,
+        };
     }
 
     pub fn quiescence_search(
@@ -285,8 +285,8 @@ impl SearchContext {
             match table_entry.score_bound {
                 ScoreBound::Exact => {
                     alpha = table_entry.score;
-                    if alpha >= beta{
-                        return beta
+                    if alpha >= beta {
+                        return beta;
                     }
                     return alpha;
                 }
@@ -305,7 +305,6 @@ impl SearchContext {
                 return beta;
             }
         }
-
 
         let mut iterable = MoveGen::new_legal(board);
         for piece in QS_ORDERING {
