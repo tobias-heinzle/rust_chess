@@ -9,7 +9,7 @@ pub fn setup_test_context(board: Board) -> SearchContext {
     let (_, rx) = channel();
     let (tx, _) = channel();
     let hash_table = TranspositionTable::new(
-        HASH_TABLE_SIZE, 
+        HASH_TABLE_SIZE as usize, 
         TableEntryData{
             best_move : ChessMove::new(
                 Square::A1, 

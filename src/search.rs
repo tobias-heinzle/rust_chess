@@ -8,7 +8,7 @@ use crate::table::{self, ScoreBound, TableEntryData, TranspositionTable};
 
 pub type PositionScore = i32;
 pub type SearchDepth = u8;
-pub type SearchResult = (PositionScore, ChessMove);
+pub type SearchOutcome = (PositionScore, ChessMove);
 pub type SearchInfo = (PositionScore, ChessMove, SearchDepth);
 
 // Evaluation constants
@@ -63,7 +63,7 @@ pub struct SearchContext {
 }
 
 impl SearchContext {
-    pub fn root_search(&mut self, max_depth: SearchDepth) -> SearchResult {
+    pub fn root_search(&mut self, max_depth: SearchDepth) -> SearchOutcome {
         let mut move_vec = get_legal_moves_vector(&self.board);
         let mut best_move = move_vec[0];
         let mut score = -INFINITY;

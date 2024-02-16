@@ -8,7 +8,8 @@ use chess;
 use chess::{ChessMove, Square};
 
 use rust_chess::table::{TranspositionTable, TableEntryData, ScoreBound};
-use rust_chess::uci::{SearchAgent, SearchGroup, Position, create_search_context, HASH_TABLE_SIZE};
+use rust_chess::uci::{Position, HASH_TABLE_SIZE};
+use rust_chess::threading::{SearchGroup};
 
 
 use rust_chess::test_utils::setup_test_context;
@@ -76,51 +77,21 @@ fn startpos_3_parallel(c: &mut Criterion) {
         board : board,
         hash_history : vec![],
     };
+    let (info_sender, _) = mpsc::channel();
+    
+
 
     c.bench_function("startpos_d7_parallel",
     |b| b.iter(
         || {
-        
-            let hash_table = TranspositionTable::new(HASH_TABLE_SIZE, 
-                TableEntryData{
-                    best_move : ChessMove::new(Square::A1, Square::A1, None), 
-                    score : 0, 
-                    depth : 0, 
-                    score_bound : ScoreBound::LowerBound
-                }
-            );
-
-            let (tx, _) = mpsc::channel();
-            let (mut context, stop_sender) = create_search_context(tx, &position, hash_table.clone());
-        
-            let principal = SearchAgent{
-                handle: thread::spawn(move || context.root_search(black_box(7))), 
-                stop: stop_sender
-            };
-            
-            let mut agents:  Vec<SearchAgent> = vec![];
-        
-            let (dummy_sender, _) = mpsc::channel();
-        
-            for _ in 0 .. BENCHMARK_THREAD_COUNT - 1 {
-                let (mut agent_context, agent_stop_sender) = create_search_context(dummy_sender.clone(), &position, hash_table.clone());
-                let agent = SearchAgent{
-                    handle : thread::spawn(move || agent_context.root_search(black_box(7))), 
-                    stop : agent_stop_sender
-                };
-        
-                agents.push(agent);
-        
-            };
-        
-            let search_group = SearchGroup {
-                principal : principal,
-                agents : agents
-            };
-
-            let result = search_group.await_principal();
-
-            result
+            let search_group = SearchGroup::start(
+                position.clone(), 
+                BENCHMARK_THREAD_COUNT, 
+                info_sender.clone(), 
+                HASH_TABLE_SIZE, 
+                black_box(7), 
+                None);
+                let _ = search_group.await_principal();
             }
         )
     );
@@ -174,53 +145,21 @@ fn mate_in_3_parallel(c: &mut Criterion) {
         board : board,
         hash_history : vec![],
     };
-
+    let (info_sender, _) = mpsc::channel();
+    
 
 
     c.bench_function("mate_in_three_parallel",
     |b| b.iter(
         || {
-        
-            let hash_table = TranspositionTable::new(HASH_TABLE_SIZE, 
-            TableEntryData{
-                    best_move : ChessMove::new(Square::A1, Square::A1, None), 
-                    score : 0, 
-                    depth : 0, 
-                    score_bound : ScoreBound::LowerBound
-                }
-            );
-
-            let (tx, _) = mpsc::channel();
-            let (mut context, stop_sender) = create_search_context(tx, &position, hash_table.clone());
-        
-            let principal = SearchAgent{
-                handle: thread::spawn(move || context.root_search(black_box(6))), 
-                stop: stop_sender
-            };
-            
-            let mut agents:  Vec<SearchAgent> = vec![];
-        
-            let (dummy_sender, _) = mpsc::channel();
-        
-            for _ in 0 .. BENCHMARK_THREAD_COUNT - 1 {
-                let (mut agent_context, agent_stop_sender) = create_search_context(dummy_sender.clone(), &position, hash_table.clone());
-                let agent = SearchAgent{
-                    handle : thread::spawn(move || agent_context.root_search(black_box(6))), 
-                    stop : agent_stop_sender
-                };
-        
-                agents.push(agent);
-        
-            };
-        
-            let search_group = SearchGroup {
-                principal : principal,
-                agents : agents
-            };
-
-            let result = search_group.await_principal();
-
-            result
+            let search_group = SearchGroup::start(
+                position.clone(), 
+                BENCHMARK_THREAD_COUNT, 
+                info_sender.clone(), 
+                HASH_TABLE_SIZE, 
+                black_box(6), 
+                None);
+                let _ = search_group.await_principal();
             }
         )
     );
@@ -352,18 +291,18 @@ criterion_group!(benches,
     // startpos, 
     // startpos_1,
     // startpos_2,
-    // startpos_3,
-    // startpos_3_parallel,
-    // mate_in_3,
-    // mate_in_3_parallel,
+    startpos_3,
+    startpos_3_parallel,
+    mate_in_3,
+    mate_in_3_parallel,
     // endgame,
     // endgame_1,
     // endgame_2,
     // mate_in_7,
     // custom, 
-    middlegame,
-    middlegame_1,
-    middlegame_2,
+    // middlegame,
+    // middlegame_1,
+    // middlegame_2,
     // stalemate,
     // chezzz, 
     // liberman,

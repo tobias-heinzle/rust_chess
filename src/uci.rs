@@ -1,68 +1,27 @@
 use std::str::FromStr;
 use std::thread::{JoinHandle, sleep};
+use std::u8::MAX;
 use std::{io, thread, time};
 use std::sync::mpsc::{channel, Receiver, Sender};
-use log::info;
+use log::{debug, error, info, warn};
 use chess::{ChessMove, Square};
 
-use crate::search::{SearchInfo, SearchResult, SearchContext, MATE_THRESHOLD, INFINITY};
-use crate::table::{ScoreBound, TableEntryData, TranspositionTable};
+use crate::search::{SearchInfo, SearchOutcome, MATE_THRESHOLD, INFINITY};
+use crate::threading::{SearchGroup};
 
 const STOP_SIGNAL: bool = true;
 const MAX_DEPTH: u8 = 64;
-pub const HASH_TABLE_SIZE: usize = 1 << 22;
+pub const HASH_TABLE_SIZE: u32 = 1 << 22;
 
 const THREAD_COUNT: u8 = 1;
 
+#[derive(Clone)]
 // TODO: Change this code to use the Game Struct from chess crate   
 pub struct Position {
     pub board: chess::Board,
     pub hash_history : Vec<u64>,
 }
 
-pub struct SearchGroup {
-    pub principal : SearchAgent,
-    pub agents : Vec<SearchAgent>
-}
-
-impl SearchGroup {
-
-    // TODO: add new and start method, think what handle should be
-
-    pub fn stop(self) -> SearchResult{
-
-        for agent in self.agents {
-            send_termination_signal(&agent.stop, 10);
-            let _ = agent.handle.join();
-        }
-
-        send_termination_signal(&self.principal.stop, 10);
-
-        let search_result = self.principal.handle.join();
-
-        return search_result.unwrap();
-    }
-
-    pub fn await_principal(self) -> SearchResult{
-
-        for agent in self.agents {
-            send_termination_signal(&agent.stop, 10);
-            let _ = agent.handle.join();
-        }
-
-        let search_result = self.principal.handle.join();
-
-        return search_result.unwrap();
-    }
-}
-
-pub struct SearchAgent {
-
-    // TODO: implement new and start also for agent, handle should be an Option<JoinHandle>
-
-    pub stop: Sender<bool>,
-    pub handle: JoinHandle<SearchResult>,
-}
 
 struct Printer {
     str_sender : Sender<String>,
@@ -79,7 +38,7 @@ impl Printer {
         return self
     }
 
-    fn result(self, result: SearchResult) -> Printer{
+    fn result(self, result: SearchOutcome) -> Printer{
         let _ = self.info_sender.send( (result.0, result.1, MAX_DEPTH + 1) );
         return self
     }
@@ -90,7 +49,7 @@ impl Printer {
     }
 
     fn stop(self){
-        send_termination_signal(&self.stop_sender, 1);
+        self.stop_sender.send(true);
         let _ = self.handle.join();
     }
 }
@@ -119,71 +78,6 @@ fn build_printer() -> Printer{
     return printer;
 }
 
-pub fn create_search_context (info_sender: Sender<SearchInfo>, position : &Position, hash_table : TranspositionTable ) -> (SearchContext, Sender<bool>) {
-    let (stop_sender, stop_receiver) = channel();
-
-    // let hash_table = Arc::new(TranspositionTable::new(HASH_TABLE_SIZE, TableEntryData{best_move : ChessMove::new(Square::A1, Square::A1, None), score : 0, depth : 0, score_bound : ScoreBound::LowerBound}));
-    
-    let mut search_context = SearchContext::new(
-        position.board, 
-        stop_receiver, 
-        info_sender.clone(),
-        hash_table//Arc::clone(&hash_table) 
-    );
-    for hash in position.hash_history.iter() {
-        search_context.set_visited(*hash);
-    }
-    return (search_context, stop_sender);
-}
-
-
-fn start_search(num_threads: u8,  info_sender: Sender<SearchInfo>, position: &Position) -> SearchGroup {
-
-    // TODO: Refactor search group to use ::new, add start method and handle should be an Option
-    
-    assert!(num_threads > 0);
-
-    let hash_table = TranspositionTable::new(
-        HASH_TABLE_SIZE, 
-        TableEntryData{best_move : ChessMove::new(Square::A1, Square::A1, None), 
-            score : 0, 
-            depth : 0, 
-            score_bound : 
-            ScoreBound::LowerBound
-        }
-    );
-    
-    let (mut context, stop_sender) = create_search_context(info_sender, position, hash_table.clone());
-
-    let principal = SearchAgent{
-        handle: thread::spawn(move || context.root_search(MAX_DEPTH)), 
-        stop: stop_sender
-    };
-    
-    let mut agents:  Vec<SearchAgent> = vec![];
-
-    let (dummy_sender, _) = channel();
-
-    for _ in 0 .. num_threads - 1 {
-        let (mut agent_context, agent_stop_sender) = create_search_context(dummy_sender.clone(), position, hash_table.clone());
-        let agent = SearchAgent{
-            handle : thread::spawn(move || agent_context.root_search(MAX_DEPTH)), 
-            stop : agent_stop_sender
-        };
-
-        agents.push(agent);
-
-    };
-
-    let search_group = SearchGroup {
-        principal : principal,
-        agents : agents
-    };
-
-    return search_group;
-}
-
-
 pub fn uci_mode(){
     info!("uci mode started\n");
 
@@ -209,42 +103,52 @@ pub fn uci_mode(){
         else if command == "isready"    { printer = printer.print("readyok"); }
         else if command == "ucinewgame" { position = Position{ board : chess::Board::default(), hash_history : vec![] }; }
         else if command == "position"   { position = change_position(arguments); }
-        else if command == "stop"       { 
+        else if command == "stop"       {
             if search_group.is_some(){
                 let result = search_group.unwrap().stop(); 
                 search_group = None;
-                info!("search result: {} - {}\n", result.0, result.1);
-                printer = printer.result(result);
-                printer = printer.bestmove(result.1);
-
+                match result{
+                    Ok(outcome) => {
+                        info!("stop; search result: {} - {}\n", outcome.0, outcome.1);
+                        printer = printer.result(outcome);
+                        printer = printer.bestmove(outcome.1);
+                    }
+                    Err(()) => {error!("stop; group.stop() failed!")}
+                }
                
             }
+            else {warn!("stop; no search_group")}
         }
         else if command == "quit"       { 
             printer.stop();
 
             if search_group.is_some() {
-                let _ = search_group.unwrap().stop();
-            }; 
+                let result = search_group.unwrap().stop();
+                match result{
+                    Err(_) => {error!("quit; group.stop() Error!")}
+                    Ok(_) => {debug!{"quit; group.stop() Ok"}}
+                }
+            }
+            else  {debug!{"quit; no search_group"}} 
+            
             info!("shutting down");
             return
         }
         else if command == "go"         {
             info!("start search");
             if search_group.is_none() {
-                search_group = Some(start_search(THREAD_COUNT, printer.info_sender.clone(), &position));
+                search_group = Some(SearchGroup::start(
+                    position.clone(), 
+                    THREAD_COUNT, 
+                    printer.info_sender.clone(), 
+                    HASH_TABLE_SIZE, 
+                    MAX_DEPTH, 
+                    None));
             }; 
         }
 
     }
 
-}
-
-
-fn send_termination_signal(sender: &Sender<bool>, n_signals: i32) {
-    for _ in 0 .. n_signals { 
-        let _ = sender.send(STOP_SIGNAL); 
-    }
 }
 
 pub fn change_position(arguments: &[&str]) -> Position{
