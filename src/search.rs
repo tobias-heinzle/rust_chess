@@ -57,7 +57,10 @@ pub struct SearchContext {
     pub repetition_table: [u8; REP_TABLE_SIZE],
     #[new(value = "vec![]")]
     pub past_position_hashes: Vec<u64>,
-
+    #[new(value = "MVV_ORDERING")]
+    pub move_ordering: [Piece; 6],
+    #[new(value = "1")]
+    pub start_depth: u8,
     #[new(value = "false")]
     terminate_search: bool,
 }
@@ -70,7 +73,7 @@ impl SearchContext {
 
         self.set_visited(self.board.get_hash());
 
-        'iterative_deepening: for depth in 1..(max_depth + 1) {
+        'iterative_deepening: for depth in self.start_depth..(max_depth + 1) {
             let mut current_best = best_move;
             let mut alpha = -INFINITY;
 
@@ -103,7 +106,8 @@ impl SearchContext {
         }
 
         self.unset_visited(self.board.get_hash());
-        return (score, best_move);
+
+        (score, best_move)
     }
 
     // TODO: think about LowerBound in TTable, is it needed? when does it occur?
@@ -197,7 +201,8 @@ impl SearchContext {
 
         self.set_visited(board.get_hash());
 
-        'mvv_loop: for piece in MVV_ORDERING {
+        'mvv_loop: for piece in self.move_ordering {
+            //self.move_ordering {
             if self.receiver_channel.try_recv().unwrap_or(false) {
                 self.terminate_search = true;
             }
@@ -256,10 +261,10 @@ impl SearchContext {
                 }
             });
 
-        return match score_bound {
+        match score_bound {
             ScoreBound::LowerBound => beta,
             _ => alpha,
-        };
+        }
     }
 
     pub fn quiescence_search(
@@ -322,7 +327,7 @@ impl SearchContext {
             }
         }
 
-        return alpha;
+        alpha
     }
 
     #[inline]
@@ -334,7 +339,8 @@ impl SearchContext {
                 }
             }
         }
-        return false;
+
+        false
     }
 
     #[inline]
@@ -353,11 +359,11 @@ impl SearchContext {
 #[inline]
 pub fn extend_check(board: &chess::Board, plies_extended: SearchDepth) -> bool {
     if *board.checkers() == EMPTY {
-        return false;
+        false
     } else if plies_extended < MAX_EXTENSION_PLIES {
-        return true;
+        true
     } else {
-        return false;
+        false
     }
 }
 
@@ -372,25 +378,36 @@ fn get_legal_moves_vector(board: &Board) -> Vec<ChessMove> {
             move_vec.push(chess_move);
         }
     }
-    return move_vec;
+
+    move_vec
 }
 
 #[inline]
-fn get_targets(board: &Board, pieces: Piece) -> BitBoard {
-    if (pieces == Piece::Pawn) && board.en_passant().is_some() {
-        return opponent_pieces(board) & BitBoard::from_square(board.en_passant().unwrap());
-    } else if pieces == Piece::King {
-        return !EMPTY;
+fn get_targets(board: &Board, piece_type: Piece) -> BitBoard {
+    match piece_type {
+        Piece::Pawn => match board.en_passant() {
+            Some(en_passant_square) => {
+                opponent_pieces_of_type(piece_type, board)
+                    | BitBoard::from_square(en_passant_square)
+            }
+            None => opponent_pieces_of_type(piece_type, board),
+        },
+        Piece::King => !EMPTY,
+        _ => opponent_pieces_of_type(piece_type, board),
     }
-    return opponent_pieces(board) & board.pieces(pieces);
+}
+
+#[inline]
+pub fn opponent_pieces_of_type(piece_type: Piece, board: &Board) -> BitBoard {
+    opponent_pieces(board) & board.pieces(piece_type)
 }
 
 #[inline]
 pub fn opponent_pieces(board: &Board) -> BitBoard {
-    return *board.color_combined(!board.side_to_move());
+    *board.color_combined(!board.side_to_move())
 }
 
 #[inline]
 pub fn player_pieces(board: &Board) -> BitBoard {
-    return *board.color_combined(board.side_to_move());
+    *board.color_combined(board.side_to_move())
 }

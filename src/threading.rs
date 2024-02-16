@@ -1,4 +1,4 @@
-use chess::{ChessMove, Square};
+use chess::{ChessMove, Piece, Square};
 use std::sync::mpsc::{channel, Sender};
 use std::thread;
 use std::thread::JoinHandle;
@@ -15,6 +15,64 @@ pub enum SearchGroupError {
 const STOP_SIGNAL: bool = true;
 const N_STOP_SIGNALS: u32 = 10;
 
+const ORDERINGS: [[Piece; 6]; 7] = [
+    [
+        Piece::Rook,
+        Piece::Queen,
+        Piece::Bishop,
+        Piece::Knight,
+        Piece::Pawn,
+        Piece::King,
+    ],
+    [
+        Piece::Bishop,
+        Piece::Queen,
+        Piece::Rook,
+        Piece::Knight,
+        Piece::Pawn,
+        Piece::King,
+    ],
+    [
+        Piece::Knight,
+        Piece::Queen,
+        Piece::Rook,
+        Piece::Bishop,
+        Piece::Pawn,
+        Piece::King,
+    ],
+    [
+        Piece::Pawn,
+        Piece::Queen,
+        Piece::Rook,
+        Piece::Bishop,
+        Piece::Knight,
+        Piece::King,
+    ],
+    [
+        Piece::King,
+        Piece::Knight,
+        Piece::Queen,
+        Piece::Rook,
+        Piece::Bishop,
+        Piece::Pawn,
+    ],
+    [
+        Piece::King,
+        Piece::Pawn,
+        Piece::Knight,
+        Piece::Bishop,
+        Piece::Rook,
+        Piece::Queen,
+    ],
+    [
+        Piece::Queen,
+        Piece::Rook,
+        Piece::Bishop,
+        Piece::Knight,
+        Piece::Pawn,
+        Piece::King,
+    ],
+];
 pub struct SearchGroup {
     principal: SearchAgent,
     agents: Vec<SearchAgent>,
@@ -48,9 +106,13 @@ impl SearchGroup {
         let (dummy_sender, _) = channel();
 
         let mut agents: Vec<SearchAgent> = vec![];
-        for _ in 0..num_threads - 1 {
-            let (agent_context, agent_stop_sender) =
+        for n_thread in 0..num_threads - 1 {
+            let (mut agent_context, agent_stop_sender) =
                 create_search_context(dummy_sender.clone(), &position, hash_table.clone());
+
+            agent_context.move_ordering = ORDERINGS[(n_thread % 7) as usize];
+            agent_context.start_depth = n_thread + 1;
+
             let agent = SearchAgent::start(agent_context, agent_stop_sender, max_depth, time_limit);
 
             agents.push(agent);
