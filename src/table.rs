@@ -1,7 +1,7 @@
+use crate::search::{PositionScore, SearchDepth};
+// use chess::CacheTable;
 use chess::ChessMove;
 use std::sync::{Arc, RwLock};
-// use chess::CacheTable;
-use crate::search::{PositionScore, SearchDepth};
 
 // pub type TranspositionTable = CacheTable<TableEntryData>;
 
@@ -24,7 +24,7 @@ pub struct TableEntryData {
 
 #[derive(Copy, Clone, PartialEq, PartialOrd)]
 struct TableEntry<T: Copy + Clone + PartialEq + PartialOrd> {
-    hash: u64,
+    hash: u32,
     data: T,
 }
 
@@ -55,7 +55,7 @@ impl<T: Copy + Clone + PartialEq + PartialOrd> SharedTable<T> {
     pub fn get(&self, hash: u64) -> Option<T> {
         let idx = (hash as usize) & self.mask;
         let entry = self.table[idx].read().unwrap();
-        if entry.hash == hash {
+        if entry.hash == hash as u32 {
             Some(entry.data)
         } else {
             None
@@ -67,7 +67,7 @@ impl<T: Copy + Clone + PartialEq + PartialOrd> SharedTable<T> {
         let idx = (hash as usize) & self.mask;
         let mut table_entry = self.table[idx].write().unwrap();
 
-        table_entry.hash = hash;
+        table_entry.hash = hash as u32;
         table_entry.data = entry;
     }
 
@@ -76,7 +76,7 @@ impl<T: Copy + Clone + PartialEq + PartialOrd> SharedTable<T> {
         let idx = (hash as usize) & self.mask;
         let mut table_entry = self.table[idx].write().unwrap();
         if replace(table_entry.data) {
-            table_entry.hash = hash;
+            table_entry.hash = hash as u32;
             table_entry.data = entry
         }
     }

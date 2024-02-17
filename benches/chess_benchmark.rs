@@ -4,12 +4,10 @@ use rust_chess;
 use std::str::FromStr;
 use std::sync::mpsc;
 
-use rust_chess::threading::SearchGroup;
-use rust_chess::uci::{Position, HASH_TABLE_SIZE};
-
+use rust_chess::config;
 use rust_chess::test_utils::setup_test_context;
-
-const BENCHMARK_THREAD_COUNT: u8 = 2;
+use rust_chess::threading::SearchGroup;
+use rust_chess::uci::Position;
 
 fn startpos(c: &mut Criterion) {
     let board = chess::Board::default();
@@ -70,9 +68,9 @@ fn startpos_3_parallel(c: &mut Criterion) {
         b.iter(|| {
             let search_group = SearchGroup::start(
                 position.clone(),
-                BENCHMARK_THREAD_COUNT,
+                config::BENCHMARK_THREAD_COUNT,
                 info_sender.clone(),
-                HASH_TABLE_SIZE,
+                config::HASH_TABLE_SIZE,
                 black_box(7),
                 None,
             );
@@ -135,9 +133,9 @@ fn mate_in_3_parallel(c: &mut Criterion) {
         b.iter(|| {
             let search_group = SearchGroup::start(
                 position.clone(),
-                BENCHMARK_THREAD_COUNT,
+                config::BENCHMARK_THREAD_COUNT,
                 info_sender.clone(),
-                HASH_TABLE_SIZE,
+                config::HASH_TABLE_SIZE,
                 black_box(6),
                 None,
             );
@@ -214,9 +212,9 @@ fn middlegame_2_parallel(c: &mut Criterion) {
         b.iter(|| {
             let search_group = SearchGroup::start(
                 position.clone(),
-                BENCHMARK_THREAD_COUNT,
+                config::BENCHMARK_THREAD_COUNT,
                 info_sender.clone(),
-                HASH_TABLE_SIZE,
+                config::HASH_TABLE_SIZE,
                 black_box(7),
                 None,
             );
@@ -275,9 +273,9 @@ fn endgame_2_parallel(c: &mut Criterion) {
         b.iter(|| {
             let search_group = SearchGroup::start(
                 position.clone(),
-                BENCHMARK_THREAD_COUNT,
+                config::BENCHMARK_THREAD_COUNT,
                 info_sender.clone(),
-                HASH_TABLE_SIZE,
+                config::HASH_TABLE_SIZE,
                 black_box(11),
                 None,
             );
@@ -310,15 +308,51 @@ fn stalemate(c: &mut Criterion) {
     });
 }
 
+fn out_of_opening_single(c: &mut Criterion) {
+    let board = chess::Board::from_str(
+        "r4rk1/1ppqbppp/p1npn1b1/P3p3/4P3/2PPNN1P/1PB2PP1/R1BQR1K1 b - - 0 15",
+    )
+    .expect("Valid Board");
+
+    c.bench_function("out_of_opening_d7_single", |b| {
+        b.iter(|| {
+            let mut context = setup_test_context(board.clone());
+            context.root_search(black_box(7))
+        })
+    });
+}
+
+fn out_of_opening_parallel(c: &mut Criterion) {
+    let board = chess::Board::from_str(
+        "r4rk1/1ppqbppp/p1npn1b1/P3p3/4P3/2PPNN1P/1PB2PP1/R1BQR1K1 b - - 0 15",
+    )
+    .expect("Valid Board");
+
+    let position = Position {
+        board: board,
+        hash_history: vec![],
+    };
+    let (info_sender, _) = mpsc::channel();
+
+    c.bench_function("out_of_opening_d7_parallel", |b| {
+        b.iter(|| {
+            let search_group = SearchGroup::start(
+                position.clone(),
+                config::BENCHMARK_THREAD_COUNT,
+                info_sender.clone(),
+                config::HASH_TABLE_SIZE,
+                black_box(7),
+                None,
+            );
+            let _ = search_group.await_principal();
+        })
+    });
+}
+
 criterion_group!(
     benches,
-    startpos,
-    startpos_1,
-    startpos_2,
-    startpos_3_single,
-    startpos_3_parallel,
-    mate_in_3_single,
-    mate_in_3_parallel,
+    out_of_opening_single,
+    out_of_opening_parallel,
     endgame,
     endgame_1,
     endgame_2_single,
@@ -329,6 +363,13 @@ criterion_group!(
     middlegame_1,
     middlegame_2_single,
     middlegame_2_parallel,
+    startpos,
+    startpos_1,
+    startpos_2,
+    startpos_3_single,
+    startpos_3_parallel,
+    mate_in_3_single,
+    mate_in_3_parallel,
     stalemate,
     chezzz,
     liberman,

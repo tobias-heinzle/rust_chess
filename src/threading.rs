@@ -73,6 +73,7 @@ const ORDERINGS: [[Piece; 6]; 7] = [
         Piece::King,
     ],
 ];
+
 pub struct SearchGroup {
     principal: SearchAgent,
     agents: Vec<SearchAgent>,
@@ -154,8 +155,6 @@ fn create_search_context(
     hash_table: TranspositionTable,
 ) -> (SearchContext, Sender<bool>) {
     let (stop_sender, stop_receiver) = channel();
-
-    // let hash_table = Arc::new(TranspositionTable::new(HASH_TABLE_SIZE, TableEntryData{best_move : ChessMove::new(Square::A1, Square::A1, None), score : 0, depth : 0, score_bound : ScoreBound::LowerBound}));
 
     let mut search_context = SearchContext::new(
         position.board,

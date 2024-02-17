@@ -5,13 +5,9 @@ use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread::{sleep, JoinHandle};
 use std::{io, thread, time};
 
-use crate::search::{SearchInfo, SearchOutcome, INFINITY, MATE_THRESHOLD};
+use crate::config;
+use crate::search::{SearchInfo, SearchOutcome};
 use crate::threading::SearchGroup;
-
-const MAX_DEPTH: u8 = 64;
-pub const HASH_TABLE_SIZE: u32 = 1 << 22;
-
-const THREAD_COUNT: u8 = 1;
 
 #[derive(Clone)]
 // TODO: Change this code to use the Game Struct from chess crate
@@ -36,7 +32,9 @@ impl Printer {
     }
 
     fn result(self, result: SearchOutcome) -> Printer {
-        let _ = self.info_sender.send((result.0, result.1, MAX_DEPTH + 1));
+        let _ = self
+            .info_sender
+            .send((result.0, result.1, config::MAX_DEPTH + 1));
         self
     }
 
@@ -154,10 +152,10 @@ pub fn uci_mode() {
             if search_group.is_none() {
                 search_group = Some(SearchGroup::start(
                     position.clone(),
-                    THREAD_COUNT,
+                    config::THREAD_COUNT,
                     printer.info_sender.clone(),
-                    HASH_TABLE_SIZE,
-                    MAX_DEPTH,
+                    config::HASH_TABLE_SIZE,
+                    config::MAX_DEPTH,
                     None,
                 ));
             };
@@ -234,9 +232,9 @@ fn printing_loop(receiver: PrinterReceiver) {
             0,
         ));
 
-        if depth > 0 && depth <= MAX_DEPTH {
+        if depth > 0 && depth <= config::MAX_DEPTH {
             print_info(score, best_move, depth);
-        } else if depth == MAX_DEPTH + 1 {
+        } else if depth == config::MAX_DEPTH + 1 {
             print_score_only(score);
             best_move = receiver.bestmove.recv().unwrap_or(best_move);
             println!("bestmove {best_move}");
@@ -250,8 +248,8 @@ fn printing_loop(receiver: PrinterReceiver) {
 }
 
 fn print_info(score: i32, best_move: ChessMove, depth: u8) {
-    if score.abs() > MATE_THRESHOLD {
-        let mut mate_distance = INFINITY - score.abs();
+    if score.abs() > config::MATE_THRESHOLD {
+        let mut mate_distance = config::INFINITY - score.abs();
 
         if score < 0 {
             mate_distance = -mate_distance;
@@ -265,8 +263,8 @@ fn print_info(score: i32, best_move: ChessMove, depth: u8) {
 }
 
 fn print_score_only(score: i32) {
-    if score.abs() > MATE_THRESHOLD {
-        let mut mate_distance = INFINITY - score.abs();
+    if score.abs() > config::MATE_THRESHOLD {
+        let mut mate_distance = config::INFINITY - score.abs();
 
         if score < 0 {
             mate_distance = -mate_distance;

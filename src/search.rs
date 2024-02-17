@@ -3,6 +3,7 @@ use derive_new::new;
 use std::cmp::max;
 use std::sync::mpsc;
 
+use crate::config;
 use crate::eval::evaluate;
 use crate::table::{ScoreBound, TableEntryData, TranspositionTable};
 
@@ -10,35 +11,6 @@ pub type PositionScore = i32;
 pub type SearchDepth = u8;
 pub type SearchOutcome = (PositionScore, ChessMove);
 pub type SearchInfo = (PositionScore, ChessMove, SearchDepth);
-
-// Evaluation constants
-pub const INFINITY: i32 = 1000000;
-pub const DRAW: i32 = 0;
-pub const MATE_MARGIN: i32 = 100;
-pub const MATE_THRESHOLD: i32 = INFINITY - MATE_MARGIN;
-
-// Move ordering; Most Valuable Victim first, King is a dummy value for quiet moves!
-const MVV_ORDERING: [Piece; 6] = [
-    Piece::Queen,
-    Piece::Rook,
-    Piece::Bishop,
-    Piece::Knight,
-    Piece::Pawn,
-    Piece::King,
-];
-const QS_ORDERING: [Piece; 5] = [
-    Piece::Queen,
-    Piece::Rook,
-    Piece::Bishop,
-    Piece::Knight,
-    Piece::Pawn,
-];
-
-// Repetition detection
-const REP_TABLE_SIZE: usize = 1 << 16;
-
-// Search Extension
-const MAX_EXTENSION_PLIES: SearchDepth = 3;
 
 // TODO: instead of alpha, beta etc. pass an object that encapsulates a search state
 
@@ -53,11 +25,11 @@ pub struct SearchContext {
     pub sender_channel: mpsc::Sender<SearchInfo>,
     pub hash_table: TranspositionTable,
 
-    #[new(value = "[0; REP_TABLE_SIZE]")]
-    pub repetition_table: [u8; REP_TABLE_SIZE],
+    #[new(value = "[0; config::REP_TABLE_SIZE]")]
+    pub repetition_table: [u8; config::REP_TABLE_SIZE],
     #[new(value = "vec![]")]
     pub past_position_hashes: Vec<u64>,
-    #[new(value = "MVV_ORDERING")]
+    #[new(value = "config::MVV_ORDERING")]
     pub move_ordering: [Piece; 6],
     #[new(value = "1")]
     pub start_depth: u8,
@@ -69,13 +41,13 @@ impl SearchContext {
     pub fn root_search(&mut self, max_depth: SearchDepth) -> SearchOutcome {
         let mut move_vec = get_legal_moves_vector(&self.board);
         let mut best_move = move_vec[0];
-        let mut score = -INFINITY;
+        let mut score = -config::INFINITY;
 
         self.set_visited(self.board.get_hash());
 
         'iterative_deepening: for depth in self.start_depth..(max_depth + 1) {
             let mut current_best = best_move;
-            let mut alpha = -INFINITY;
+            let mut alpha = -config::INFINITY;
 
             move_vec.sort_by_key(|m| if best_move.eq(m) { 0 } else { 1 });
 
@@ -83,7 +55,7 @@ impl SearchContext {
                 let value = -self.search(
                     &self.board.make_move_new(*chess_move),
                     depth - 1,
-                    -INFINITY,
+                    -config::INFINITY,
                     -alpha,
                     0,
                 );
@@ -125,7 +97,7 @@ impl SearchContext {
         }
 
         if self.already_visited(board.get_hash()) {
-            return DRAW;
+            return config::DRAW;
         }
 
         if depth <= 0 || board.status() != BoardStatus::Ongoing {
@@ -181,7 +153,7 @@ impl SearchContext {
                 );
                 self.unset_visited(board.get_hash());
 
-                if value > MATE_THRESHOLD {
+                if value > config::MATE_THRESHOLD {
                     value -= 1;
                 }
 
@@ -222,7 +194,7 @@ impl SearchContext {
                     plies_extended,
                 );
 
-                if value > MATE_THRESHOLD {
+                if value > config::MATE_THRESHOLD {
                     value -= 1;
                 }
 
@@ -260,6 +232,7 @@ impl SearchContext {
                     false
                 }
             });
+        // self.hash_table.add(board.get_hash(), table_entry);
 
         match score_bound {
             ScoreBound::LowerBound => beta,
@@ -274,8 +247,8 @@ impl SearchContext {
         mut beta: PositionScore,
     ) -> i32 {
         match board.status() {
-            BoardStatus::Checkmate => return -INFINITY,
-            BoardStatus::Stalemate => return DRAW,
+            BoardStatus::Checkmate => return -config::INFINITY,
+            BoardStatus::Stalemate => return config::DRAW,
             BoardStatus::Ongoing => {}
         }
 
@@ -312,7 +285,7 @@ impl SearchContext {
         }
 
         let mut iterable = MoveGen::new_legal(board);
-        for piece in QS_ORDERING {
+        for piece in config::QS_ORDERING {
             iterable.set_iterator_mask(get_targets(board, piece));
 
             for chess_move in &mut iterable {
@@ -332,7 +305,7 @@ impl SearchContext {
 
     #[inline]
     pub fn already_visited(&mut self, position_hash: u64) -> bool {
-        if self.repetition_table[position_hash as usize % REP_TABLE_SIZE] >= 1 {
+        if self.repetition_table[position_hash as usize % config::REP_TABLE_SIZE] >= 1 {
             for past_hash in self.past_position_hashes.iter() {
                 if position_hash == *past_hash {
                     return true;
@@ -345,13 +318,13 @@ impl SearchContext {
 
     #[inline]
     pub fn set_visited(&mut self, position_hash: u64) {
-        self.repetition_table[position_hash as usize % REP_TABLE_SIZE] += 1;
+        self.repetition_table[position_hash as usize % config::REP_TABLE_SIZE] += 1;
         self.past_position_hashes.push(position_hash);
     }
 
     #[inline]
     pub fn unset_visited(&mut self, position_hash: u64) {
-        self.repetition_table[position_hash as usize % REP_TABLE_SIZE] -= 1;
+        self.repetition_table[position_hash as usize % config::REP_TABLE_SIZE] -= 1;
         self.past_position_hashes.pop();
     }
 }
@@ -360,7 +333,7 @@ impl SearchContext {
 pub fn extend_check(board: &chess::Board, plies_extended: SearchDepth) -> bool {
     if *board.checkers() == EMPTY {
         false
-    } else if plies_extended < MAX_EXTENSION_PLIES {
+    } else if plies_extended < config::MAX_EXTENSION_PLIES {
         true
     } else {
         false
@@ -372,7 +345,7 @@ fn get_legal_moves_vector(board: &Board) -> Vec<ChessMove> {
     let mut iterable = MoveGen::new_legal(board);
 
     let mut move_vec: Vec<ChessMove> = vec![];
-    for piece in MVV_ORDERING {
+    for piece in config::MVV_ORDERING {
         iterable.set_iterator_mask(get_targets(board, piece));
         for chess_move in &mut iterable {
             move_vec.push(chess_move);
