@@ -1,6 +1,7 @@
-from random import sample
-from time import sleep
 import asyncio
+from typing import Optional
+from time import sleep
+from random import sample
 
 from chess import engine, Board, Move
 from chess.polyglot import open_reader
@@ -53,7 +54,10 @@ class ChessEngineWrapper:
         self.transport = None
 
 
-    def choose_book_move(self, board: Board, book: str = "books/titans.bin") -> Move | None:
+    def choose_book_move(self, board: Board, book: Optional[str] = "books/titans.bin") -> Move | None:
+        if book is None:
+            return None
+        
         with open_reader("books/titans.bin") as reader:
             book_entries = list(reader.find_all(board))
 
