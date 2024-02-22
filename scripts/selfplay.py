@@ -16,12 +16,13 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('-a', '--engine_a', default='../target/release/rust_chess', required=False)
 parser.add_argument('-b', '--engine_b', default='../target/release/rust_chess', required=False)           # positional argument
-parser.add_argument('-n', '--n_games', default="1")      # option that takes a value
-parser.add_argument('-t', '--time_per_move', default="0.5")      # option that takes a value
+parser.add_argument('-n', '--games', default="1")      # option that takes a value
+parser.add_argument('-t', '--movetime', default="0.5")      # option that takes a value
 parser.add_argument('-v', '--verbose',
                     action='store_true')
 parser.add_argument('-vv', '--very_verbose',
                     action='store_true')
+parser.add_argument('--no_book',action='store_true')
 
 args = parser.parse_args()
 
@@ -34,10 +35,12 @@ engine_b.path = args.engine_b
 very_verbose = args.very_verbose
 verbose = args.verbose or very_verbose
 
+book = not args.no_book
 
-time_limit = float(args.time_per_move)
 
-n = int(args.n_games)
+time_limit = float(args.movetime)
+
+n = int(args.games)
 
 assert(n > 0)
 assert(time_limit > 0)
@@ -54,6 +57,7 @@ handler.setFormatter(formatter)
 logger = logging.getLogger("chess.engine")
 logger.addHandler(handler)
 
+colors = {True : "White", False : "Black"}
 
 async def selfplay_loop():
     name_a = engine_a.path.split('/')[-1]
@@ -89,12 +93,12 @@ async def selfplay_loop():
         while board.outcome(claim_draw=True) is None:
 
             if board.turn == engine_a_color:
-                move = engine_a.choose_book_move(board)
+                move = engine_a.choose_book_move(board) if book else None
                 result = "book_move"
                 if move is None: 
                     move, result = await engine_a.analyze_position(board, time_limit)
             else:
-                move = engine_b.choose_book_move(board)
+                move = engine_b.choose_book_move(board) if book else None
                 result = "book_move"
                 if move is None: 
                     move, result = await engine_b.analyze_position(board, time_limit)
@@ -105,7 +109,7 @@ async def selfplay_loop():
                 print(f"Game {game}: {move} -- {result}")
             
             if very_verbose:
-                print(name_a, "is", engine_a_color, ", opponent is", name_b)
+                print(name_a, "is", colors[engine_a_color], ",", name_b, "is", colors[not engine_a_color])
                 print(board)
         
         outcome = board.outcome(claim_draw = True)

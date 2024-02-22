@@ -17,14 +17,6 @@ const N_STOP_SIGNALS: u32 = 10;
 
 const ORDERINGS: [[Piece; 6]; 7] = [
     [
-        Piece::Rook,
-        Piece::Queen,
-        Piece::Bishop,
-        Piece::Knight,
-        Piece::Pawn,
-        Piece::King,
-    ],
-    [
         Piece::Bishop,
         Piece::Queen,
         Piece::Rook,
@@ -37,6 +29,14 @@ const ORDERINGS: [[Piece; 6]; 7] = [
         Piece::Queen,
         Piece::Rook,
         Piece::Bishop,
+        Piece::Pawn,
+        Piece::King,
+    ],
+    [
+        Piece::Rook,
+        Piece::Queen,
+        Piece::Bishop,
+        Piece::Knight,
         Piece::Pawn,
         Piece::King,
     ],

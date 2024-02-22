@@ -82,8 +82,6 @@ impl SearchContext {
         (score, best_move)
     }
 
-    // TODO: think about LowerBound in TTable, is it needed? when does it occur?
-
     pub fn search(
         &mut self,
         board: &Board,
@@ -227,6 +225,8 @@ impl SearchContext {
         self.hash_table
             .replace_if(board.get_hash(), table_entry, |old_entry| {
                 if old_entry.depth <= depth {
+                    true
+                } else if table_entry.score_bound == ScoreBound::Exact {
                     true
                 } else {
                     false
