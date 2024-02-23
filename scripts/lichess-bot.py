@@ -55,9 +55,9 @@ class Game():
         self.color = WHITE if color == "white" else BLACK
         self.initial_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
         
-        self.book_move_time = 1.0
-        if speed in Game.book_speed.keys():
-            self.book_move_time = Game.book_speed[speed]
+        # self.book_move_time = 1.0
+        # if speed in Game.book_speed.keys():
+        #     self.book_move_time = Game.book_speed[speed]
 
     async def start(self) -> None:
         bot_logger.info("Game started: " + self.game_id)
@@ -121,7 +121,7 @@ class Game():
         if book_move is not None:
             move = book_move
             result = "book move"
-            sleep(self.book_move_time)
+            # sleep(self.book_move_time)
         else:
             move, result = await engine.analyze_position(self.board, time_limit)
 

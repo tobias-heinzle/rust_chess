@@ -128,9 +128,8 @@ const KING_TABLE_ENDGAME: [i32; 64] = [
 
 #[inline]
 pub fn evaluate(board: &Board) -> PositionScore {
-    // TODO: PSQT for king (use get king or something like that) and pawns(check how many pawns in an area with &) interpolate between endgame and earlygame
+    // TODO: Undefended pieces, open files for rooks, past pawns , outposts
     //       Draw by insufficient material (no pawns and total material <= bishop)
-    //       Endgame bring in king by scoring distance (len distance between kings is negative, center good, edege bad (via bitmask)) early game corners good via bitmask (skip castling square before castling)
 
     // let mut score = 0;
     let mut bitboard: BitBoard;

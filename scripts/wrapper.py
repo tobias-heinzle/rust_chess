@@ -12,7 +12,8 @@ class ChessEngineWrapper:
     path: str = "../target/release/rust_chess"
     polling_interval: float = 0.01
     retries: int = 3
-    transport: asyncio.SubprocessTransport = None; 
+    transport: asyncio.SubprocessTransport = None
+    k_book_move: int = 2
 
     async def start(self):
         if self.transport is not None:
@@ -62,7 +63,11 @@ class ChessEngineWrapper:
             book_entries = list(reader.find_all(board))
 
             if len(book_entries) > 0:
-                weights = [entry.weight for entry in book_entries]
-                return sample(book_entries, 1, counts=weights)[0].move
+                book_entries.sort(key= lambda e: e.weight, reverse=True)
+
+                top_book_entries = book_entries[:self.k_book_move]
+                weights = [e.weight for e in top_book_entries]
+
+                return sample(top_book_entries, 1, counts=weights)[0].move
 
         return None

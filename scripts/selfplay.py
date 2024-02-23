@@ -2,12 +2,14 @@ import argparse
 import asyncio
 import datetime
 import json
+import os
 import sys
 import logging
 
 from chess import Board, WHITE, BLACK
 import chess.engine
 from wrapper import ChessEngineWrapper
+from display import print_board
 
 parser = argparse.ArgumentParser(
                     prog='selfplay',
@@ -88,7 +90,7 @@ async def selfplay_loop():
         engine_a_color = WHITE if game % 2 == 1 else BLACK
 
         if very_verbose:
-            print(board)
+            print_board(board)
 
         while board.outcome(claim_draw=True) is None:
 
@@ -106,45 +108,49 @@ async def selfplay_loop():
             board.push(move)
             
             if verbose:
-                print(f"Game {game}: {move} -- {result}")
+                print(f"Game {game + 1}: {move} -- {result}")
             
             if very_verbose:
                 print(name_a, "is", colors[engine_a_color], ",", name_b, "is", colors[not engine_a_color])
-                print(board)
+                print_board(board)
         
         outcome = board.outcome(claim_draw = True)
         winner = None
         if outcome.winner == engine_a_color:
             if verbose:
-                print(f"Game {game}: win for {name_a}")
+                print(f"Game {game + 1}: win for {name_a}")
             winner = name_a
             stats['statistics']['wins_a'] += 1
         elif outcome.winner == None:
             if verbose:
-                print(f"Game {game}: draw")
+                print(f"Game {game + 1}: draw")
             stats['statistics']['draws'] += 1
         else:
             if verbose:
-                print(f"Game {game}: win for {name_b}")
+                print(f"Game {game + 1}: win for {name_b}")
             winner = name_b
             stats['statistics']['wins_b'] += 1
         stats['statistics']['total'] += 1
 
         if verbose:
-            print(f"Game {game}: {outcome}")
+            print(f"Game {game + 1}: {outcome}")
         
         await engine_a.quit()
         await engine_b.quit()
 
+        print(f"Game {game + 1}/{n} done - outcome: {'win for ' + winner if winner is not None else 'draw' }")
+        try:
+            os.makedirs("results/")
+        except:
+            pass
+        finally:
+            with open(f"results/{name_a}_vs_{name_b}_{'_'.join(stats['date'].split(' '))}.json", 'w') as file:
+                json.dump(stats, file)
     
         game += 1
-        if game > n:
+        if game >= n:
             break
         
-        print(f"Game {game + 1}/{n} done - outcome: {'win for ' + winner if winner is not None else 'draw' }")
-        
-        with open(f"results/{name_a}_vs_{name_b}_{'_'.join(stats['date'].split(' '))}.json", 'w') as file:
-            json.dump(stats, file)
 
 asyncio.set_event_loop_policy(chess.engine.EventLoopPolicy())
 asyncio.run(selfplay_loop())

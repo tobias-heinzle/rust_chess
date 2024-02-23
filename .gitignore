@@ -6,8 +6,7 @@
 lichess.token
 allowed.challengers
 */__pycache__/
-/scripts/books/*
-/scripts/results/*
+/scripts/*/
 /executables
 *.log
 *.notes
