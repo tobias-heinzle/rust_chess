@@ -38,8 +38,6 @@ very_verbose = args.very_verbose
 verbose = args.verbose or very_verbose
 
 book = not args.no_book
-
-
 time_limit = float(args.movetime)
 
 n = int(args.games)
@@ -86,6 +84,9 @@ async def selfplay_loop():
         await engine_b.start()
 
         board = Board()
+
+        if fen is not None:
+            board = Board(fen)
 
         engine_a_color = WHITE if game % 2 == 1 else BLACK
 

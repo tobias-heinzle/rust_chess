@@ -21,6 +21,8 @@ parser.add_argument('-e', '--engine', default='../target/release/rust_chess', re
 parser.add_argument('-t', '--movetime', default="0.5")      # option that takes a value
 parser.add_argument('-c', '--color', default='white')
 parser.add_argument('--no_book',action='store_true')
+parser.add_argument('rest', nargs=argparse.REMAINDER)
+
 
 args = parser.parse_args()
 
@@ -35,6 +37,12 @@ time_min = 0.1
 time_limit = float(args.movetime)
 assert(color in ['white', 'black'], 'color must be white or black')
 assert(time_limit > time_min, f'movetime must be greater than {time_min}')
+
+fen = None
+if args.rest is not None:
+    print(args.rest)
+    fen = " ".join(args.rest)
+
 
 logging.getLogger().setLevel(logging.DEBUG)
 
@@ -55,6 +63,9 @@ async def play() -> Board:
     await engine.start()
 
     board = Board()
+
+    if fen is not None:
+        board = Board(fen)
 
     print_board(board, engine_color)
 

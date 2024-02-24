@@ -5,6 +5,7 @@ use std::sync::mpsc;
 
 use crate::config;
 use crate::eval::evaluate;
+use crate::movelist::MoveList;
 use crate::table::{ScoreBound, TableEntryData, TranspositionTable};
 
 pub type PositionScore = i32;
@@ -30,7 +31,7 @@ pub struct SearchContext {
     #[new(value = "vec![]")]
     pub past_position_hashes: Vec<u64>,
     #[new(value = "config::MVV_ORDERING")]
-    pub move_ordering: [Piece; 6],
+    pub capture_order: [Piece; 5],
     #[new(value = "1")]
     pub start_depth: u8,
     #[new(value = "false")]
@@ -107,7 +108,7 @@ impl SearchContext {
             plies_extended += 1;
         }
 
-        let mut best_move = ChessMove::new(Square::A1, Square::A1, None);
+        let mut hash_move: Option<ChessMove> = None;
         let table_probe = self.hash_table.get(board.get_hash());
 
         if let Some(table_entry) = table_probe {
@@ -139,77 +140,46 @@ impl SearchContext {
                 return beta;
             }
 
-            if board.legal(table_entry.best_move) {
-                self.set_visited(board.get_hash());
-
-                let mut value = -self.search(
-                    &board.make_move_new(table_entry.best_move),
-                    depth - 1,
-                    -beta,
-                    -alpha,
-                    plies_extended,
-                );
-                self.unset_visited(board.get_hash());
-
-                if value > config::MATE_THRESHOLD {
-                    value -= 1;
-                }
-
-                if value > alpha {
-                    alpha = value;
-                    if alpha >= beta {
-                        return beta;
-                    }
-                }
-
-                best_move = table_entry.best_move
-            }
+            hash_move = Some(table_entry.best_move);
         }
 
+        let movelist = MoveList::new(board, hash_move, None);
+
         let mut score_bound = ScoreBound::UpperBound;
-        let mut iterable = MoveGen::new_legal(board);
+        let mut best_move = ChessMove::new(Square::A1, Square::A1, None);
 
         self.set_visited(board.get_hash());
 
-        'mvv_loop: for piece in self.move_ordering {
-            //self.move_ordering {
-            if self.receiver_channel.try_recv().unwrap_or(false) {
-                self.terminate_search = true;
+        for chess_move in movelist {
+            let mut value = -self.search(
+                &board.make_move_new(chess_move),
+                depth - 1,
+                -beta,
+                -alpha,
+                plies_extended,
+            );
+
+            if value > config::MATE_THRESHOLD {
+                value -= 1;
             }
 
-            iterable.set_iterator_mask(get_targets(&board, piece));
+            if value > alpha {
+                best_move = chess_move;
+                alpha = value;
+                score_bound = ScoreBound::Exact;
 
-            for chess_move in &mut iterable {
-                if chess_move == best_move {
-                    continue;
-                }
-
-                let mut value = -self.search(
-                    &board.make_move_new(chess_move),
-                    depth - 1,
-                    -beta,
-                    -alpha,
-                    plies_extended,
-                );
-
-                if value > config::MATE_THRESHOLD {
-                    value -= 1;
-                }
-
-                if value > alpha {
-                    best_move = chess_move;
-                    alpha = value;
-                    score_bound = ScoreBound::Exact;
-
-                    if alpha >= beta {
-                        score_bound = ScoreBound::LowerBound;
-                        break 'mvv_loop;
-                    }
+                if alpha >= beta {
+                    score_bound = ScoreBound::LowerBound;
+                    break;
                 }
             }
         }
 
         self.unset_visited(board.get_hash());
+
+        if self.receiver_channel.try_recv().unwrap_or(false) {
+            self.terminate_search = true;
+        }
 
         if self.terminate_search {
             return alpha;
@@ -232,7 +202,6 @@ impl SearchContext {
                     false
                 }
             });
-        // self.hash_table.add(board.get_hash(), table_entry);
 
         match score_bound {
             ScoreBound::LowerBound => beta,
@@ -284,11 +253,13 @@ impl SearchContext {
             }
         }
 
+        // let movelist = MoveList::new(board, None, None);
         let mut iterable = MoveGen::new_legal(board);
         for piece in config::QS_ORDERING {
             iterable.set_iterator_mask(get_targets(board, piece));
 
             for chess_move in &mut iterable {
+                //for chess_move in movelist {
                 alpha = max(
                     alpha,
                     -self.quiescence_search(&board.make_move_new(chess_move), -beta, -alpha),
@@ -350,6 +321,11 @@ fn get_legal_moves_vector(board: &Board) -> Vec<ChessMove> {
         for chess_move in &mut iterable {
             move_vec.push(chess_move);
         }
+    }
+
+    iterable.set_iterator_mask(!EMPTY);
+    for chess_move in &mut iterable {
+        move_vec.push(chess_move);
     }
 
     move_vec

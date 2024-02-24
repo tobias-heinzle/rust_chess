@@ -13,13 +13,12 @@ pub const MATE_MARGIN: i32 = 100;
 pub const MATE_THRESHOLD: i32 = INFINITY - MATE_MARGIN;
 
 // Move ordering; Most Valuable Victim first, King is a dummy value for quiet moves!
-pub const MVV_ORDERING: [Piece; 6] = [
+pub const MVV_ORDERING: [Piece; 5] = [
     Piece::Queen,
     Piece::Rook,
     Piece::Bishop,
     Piece::Knight,
     Piece::Pawn,
-    Piece::King,
 ];
 pub const QS_ORDERING: [Piece; 5] = [
     Piece::Queen,

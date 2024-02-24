@@ -15,14 +15,13 @@ pub enum SearchGroupError {
 const STOP_SIGNAL: bool = true;
 const N_STOP_SIGNALS: u32 = 10;
 
-const ORDERINGS: [[Piece; 6]; 7] = [
+const ORDERINGS: [[Piece; 5]; 7] = [
     [
         Piece::Bishop,
         Piece::Queen,
         Piece::Rook,
         Piece::Knight,
         Piece::Pawn,
-        Piece::King,
     ],
     [
         Piece::Knight,
@@ -30,7 +29,6 @@ const ORDERINGS: [[Piece; 6]; 7] = [
         Piece::Rook,
         Piece::Bishop,
         Piece::Pawn,
-        Piece::King,
     ],
     [
         Piece::Rook,
@@ -38,7 +36,6 @@ const ORDERINGS: [[Piece; 6]; 7] = [
         Piece::Bishop,
         Piece::Knight,
         Piece::Pawn,
-        Piece::King,
     ],
     [
         Piece::Pawn,
@@ -46,10 +43,8 @@ const ORDERINGS: [[Piece; 6]; 7] = [
         Piece::Rook,
         Piece::Bishop,
         Piece::Knight,
-        Piece::King,
     ],
     [
-        Piece::King,
         Piece::Knight,
         Piece::Queen,
         Piece::Rook,
@@ -57,7 +52,6 @@ const ORDERINGS: [[Piece; 6]; 7] = [
         Piece::Pawn,
     ],
     [
-        Piece::King,
         Piece::Pawn,
         Piece::Knight,
         Piece::Bishop,
@@ -70,7 +64,6 @@ const ORDERINGS: [[Piece; 6]; 7] = [
         Piece::Bishop,
         Piece::Knight,
         Piece::Pawn,
-        Piece::King,
     ],
 ];
 
@@ -111,7 +104,7 @@ impl SearchGroup {
             let (mut agent_context, agent_stop_sender) =
                 create_search_context(dummy_sender.clone(), &position, hash_table.clone());
 
-            agent_context.move_ordering = ORDERINGS[(n_thread % 7) as usize];
+            agent_context.capture_order = ORDERINGS[(n_thread % 7) as usize];
             agent_context.start_depth = n_thread + 1;
 
             let agent = SearchAgent::start(agent_context, agent_stop_sender, max_depth, time_limit);
