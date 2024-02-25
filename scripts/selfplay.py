@@ -85,9 +85,6 @@ async def selfplay_loop():
 
         board = Board()
 
-        if fen is not None:
-            board = Board(fen)
-
         engine_a_color = WHITE if game % 2 == 1 else BLACK
 
         if very_verbose:

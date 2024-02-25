@@ -131,18 +131,16 @@ pub fn uci_mode() {
         } else if command == "quit" {
             printer.stop();
 
-            if search_group.is_some() {
-                let result = search_group.unwrap().stop();
-                match result {
+            match search_group {
+                Some(group) => match group.stop() {
                     Err(_) => {
                         error!("quit; group.stop() Error!")
                     }
                     Ok(_) => {
                         debug! {"quit; group.stop() Ok"}
                     }
-                }
-            } else {
-                debug! {"quit; no search_group"}
+                },
+                None => debug! {"quit; no search_group"},
             }
 
             info!("shutting down");
@@ -159,6 +157,8 @@ pub fn uci_mode() {
                     None,
                 ));
             };
+        } else {
+            debug!("Unknown command: {}", command)
         }
     }
 }

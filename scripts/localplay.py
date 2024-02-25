@@ -42,6 +42,9 @@ fen = None
 if args.rest is not None:
     print(args.rest)
     fen = " ".join(args.rest)
+    fen = fen.strip()
+    if len(fen) == 0:
+        fen = None
 
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -56,6 +59,13 @@ logger.addHandler(handler)
 
 colors = {True : "White", False : "Black"}
 engine_color = BLACK if color == "white" else WHITE
+
+async def engine_move(board):
+    move = engine.choose_book_move(board) if book else None
+    if move is None: 
+        move, result = await engine.analyze_position(board, time_limit)
+        print("score: ", result)
+    return move
 
 async def play() -> Board:
     name = engine.path.split('/')[-1]
@@ -73,10 +83,7 @@ async def play() -> Board:
         while board.outcome(claim_draw=True) is None:
 
             if board.turn == engine_color:
-                move = engine.choose_book_move(board) if book else None
-                if move is None: 
-                    move, result = await engine.analyze_position(board, time_limit)
-                    print("score: ", result)
+                move = await engine_move(board)
             else:
                 move_str = input("Input move:")
                 try:
@@ -85,9 +92,14 @@ async def play() -> Board:
                         board.pop()
                         print_board(board, engine_color)
                         continue
-                    move = Move.from_uci(move_str)
-                    if not move in board.legal_moves:
-                        continue
+                    elif move_str == "engine":
+                        move = await engine_move(board)
+                    elif move_str == "quit":
+                        return    
+                    else:
+                        move = Move.from_uci(move_str)
+                        if not move in board.legal_moves:
+                            continue
                 except:
                     continue
                 
@@ -96,10 +108,7 @@ async def play() -> Board:
             print(f"You are {colors[not engine_color]};", name, "is", colors[engine_color])
             
             print_board(board, engine_color)
-        
-
-        
-        await engine.quit()
+    
         
         outcome = board.outcome(claim_draw = True)
         if outcome.winner == engine_color:
@@ -111,6 +120,8 @@ async def play() -> Board:
             print("win for player")
 
     finally:
+        await engine.quit()
+
         game = chess.pgn.Game.from_board(board)
         try:
             os.makedirs(f"games/{name}_vs_player")

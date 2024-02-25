@@ -3,7 +3,7 @@ use derive_new::new;
 use std::cmp::max;
 use std::sync::mpsc;
 
-use crate::config;
+use crate::config::{self, MAX_EXTENSION_PLIES};
 use crate::eval::evaluate;
 use crate::movelist::MoveList;
 use crate::table::{ScoreBound, TableEntryData, TranspositionTable};
@@ -36,6 +36,8 @@ pub struct SearchContext {
     pub start_depth: u8,
     #[new(value = "false")]
     terminate_search: bool,
+    #[new(value = "vec![]")]
+    killers: Vec<Option<ChessMove>>,
 }
 
 impl SearchContext {
@@ -43,6 +45,8 @@ impl SearchContext {
         let mut move_vec = get_legal_moves_vector(&self.board);
         let mut best_move = move_vec[0];
         let mut score = -config::INFINITY;
+
+        self.killers = vec![None; (max_depth + MAX_EXTENSION_PLIES) as usize];
 
         self.set_visited(self.board.get_hash());
 
@@ -58,6 +62,7 @@ impl SearchContext {
                     depth - 1,
                     -config::INFINITY,
                     -alpha,
+                    0,
                     0,
                 );
 
@@ -90,6 +95,7 @@ impl SearchContext {
         mut alpha: PositionScore,
         mut beta: PositionScore,
         mut plies_extended: SearchDepth,
+        ply: SearchDepth,
     ) -> PositionScore {
         if self.terminate_search {
             return alpha;
@@ -143,7 +149,7 @@ impl SearchContext {
             hash_move = Some(table_entry.best_move);
         }
 
-        let movelist = MoveList::new(board, hash_move, None);
+        let movelist = MoveList::new(board, hash_move, self.killers[ply as usize]);
 
         let mut score_bound = ScoreBound::UpperBound;
         let mut best_move = ChessMove::new(Square::A1, Square::A1, None);
@@ -157,6 +163,7 @@ impl SearchContext {
                 -beta,
                 -alpha,
                 plies_extended,
+                ply + 1,
             );
 
             if value > config::MATE_THRESHOLD {
@@ -169,6 +176,10 @@ impl SearchContext {
                 score_bound = ScoreBound::Exact;
 
                 if alpha >= beta {
+                    match board.piece_on(chess_move.get_dest()) {
+                        Some(_) => {}
+                        None => self.killers[ply as usize] = Some(chess_move),
+                    }
                     score_bound = ScoreBound::LowerBound;
                     break;
                 }
@@ -194,13 +205,7 @@ impl SearchContext {
 
         self.hash_table
             .replace_if(board.get_hash(), table_entry, |old_entry| {
-                if old_entry.depth <= depth {
-                    true
-                } else if table_entry.score_bound == ScoreBound::Exact {
-                    true
-                } else {
-                    false
-                }
+                old_entry.depth <= depth || table_entry.score_bound == ScoreBound::Exact
             });
 
         match score_bound {
@@ -302,13 +307,7 @@ impl SearchContext {
 
 #[inline]
 pub fn extend_check(board: &chess::Board, plies_extended: SearchDepth) -> bool {
-    if *board.checkers() == EMPTY {
-        false
-    } else if plies_extended < config::MAX_EXTENSION_PLIES {
-        true
-    } else {
-        false
-    }
+    (*board.checkers() != EMPTY) && (plies_extended < config::MAX_EXTENSION_PLIES)
 }
 
 #[inline]
