@@ -5,13 +5,15 @@ use std::sync::mpsc;
 
 use crate::config::{self, MAX_EXTENSION_PLIES};
 use crate::eval::evaluate;
-use crate::movelist::{MoveList, QuiescenceMoveList};
+use crate::movelist::MoveList;
 use crate::table::{ScoreBound, TableEntryData, TranspositionTable};
 
 pub type PositionScore = i32;
 pub type SearchDepth = u8;
 pub type SearchOutcome = (PositionScore, ChessMove);
 pub type SearchInfo = (PositionScore, ChessMove, SearchDepth);
+
+// TODO: Add History Heuristic
 
 // TODO: instead of alpha, beta etc. pass an object that encapsulates a search state
 
@@ -147,6 +149,7 @@ impl SearchContext {
             plies_extended += 1;
         }
 
+        // TODO: try if just ChessMove performs better than option type
         let mut hash_move: Option<ChessMove> = None;
         let table_probe = self.hash_table.get(board.get_hash());
 
@@ -211,6 +214,8 @@ impl SearchContext {
                 score_bound = ScoreBound::Exact;
 
                 if alpha >= beta {
+                    // TODO if movegen.stage == quiet
+
                     match board.piece_on(chess_move.get_dest()) {
                         Some(_) => {}
                         None => self.killers[ply].store(chess_move),
@@ -293,16 +298,11 @@ impl SearchContext {
             }
         }
 
-        // let movelist = MoveList::new(board, None, None);
         let mut iterable = MoveGen::new_legal(board);
         for piece in config::QS_ORDERING {
             iterable.set_iterator_mask(get_targets(board, piece));
 
             for chess_move in &mut iterable {
-                // let move_list = QuiescenceMoveList::new(board);
-
-                // for chess_move in move_list {
-                //for chess_move in movelist {
                 alpha = max(
                     alpha,
                     -self.quiescence_search(&board.make_move_new(chess_move), -beta, -alpha),
