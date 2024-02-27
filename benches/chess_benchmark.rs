@@ -223,6 +223,45 @@ fn middlegame_2_parallel(c: &mut Criterion) {
     });
 }
 
+fn middlegame_3_single(c: &mut Criterion) {
+    let board =
+        chess::Board::from_str("2kr2nr/pp3ppp/1q2p1b1/2b5/Q1PN4/4B3/PP2NPPP/R4RK1 b - - 4 14")
+            .expect("Valid Board");
+
+    c.bench_function("middlegame_3_d7_single", |b| {
+        b.iter(|| {
+            let mut context = setup_test_context(board.clone());
+            context.root_search(black_box(7))
+        })
+    });
+}
+
+fn middlegame_3_parallel(c: &mut Criterion) {
+    let board =
+        chess::Board::from_str("2kr2nr/pp3ppp/1q2p1b1/2b5/Q1PN4/4B3/PP2NPPP/R4RK1 b - - 4 14")
+            .expect("Valid Board");
+
+    let position = Position {
+        board: board,
+        hash_history: vec![],
+    };
+    let (info_sender, _) = mpsc::channel();
+
+    c.bench_function("middlegame_3_d7_parallel", |b| {
+        b.iter(|| {
+            let search_group = SearchGroup::start(
+                position.clone(),
+                config::BENCHMARK_THREAD_COUNT,
+                info_sender.clone(),
+                config::HASH_TABLE_SIZE,
+                black_box(7),
+                None,
+            );
+            let _ = search_group.await_principal();
+        })
+    });
+}
+
 fn endgame(c: &mut Criterion) {
     let board =
         chess::Board::from_str("8/p7/3n2k1/4K1P1/1P6/6N1/P6p/8 b - - 3 51").expect("Valid Board");
@@ -353,6 +392,8 @@ criterion_group!(
     benches,
     out_of_opening_single,
     out_of_opening_parallel,
+    middlegame_3_single,
+    middlegame_3_parallel,
     endgame,
     endgame_1,
     endgame_2_single,

@@ -7,6 +7,8 @@ use std::sync::{Arc, RwLock};
 
 pub type TranspositionTable = SharedTable<TableEntryData>;
 
+// TODO: Add the flag PV
+
 #[derive(Clone, Copy, PartialEq, PartialOrd)]
 pub enum ScoreBound {
     Exact,

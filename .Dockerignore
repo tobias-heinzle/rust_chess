@@ -4,3 +4,6 @@
 /.venv/
 /.vscode/
 /target/
+*/results*
+*/games*
+/executables/

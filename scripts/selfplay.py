@@ -106,7 +106,7 @@ async def selfplay_loop():
             board.push(move)
             
             if verbose:
-                print(f"Game {game + 1}: {move} -- {result}")
+                print(f"Game {game + 1}/{n}: {move} -- {result}")
             
             if very_verbose:
                 print(name_a, "is", colors[engine_a_color], ",", name_b, "is", colors[not engine_a_color])

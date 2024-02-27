@@ -5,7 +5,7 @@ use std::sync::mpsc;
 
 use crate::config::{self, MAX_EXTENSION_PLIES};
 use crate::eval::evaluate;
-use crate::movelist::MoveList;
+use crate::movelist::{MoveList, QuiescenceMoveList};
 use crate::table::{ScoreBound, TableEntryData, TranspositionTable};
 
 pub type PositionScore = i32;
@@ -14,6 +14,22 @@ pub type SearchOutcome = (PositionScore, ChessMove);
 pub type SearchInfo = (PositionScore, ChessMove, SearchDepth);
 
 // TODO: instead of alpha, beta etc. pass an object that encapsulates a search state
+
+#[derive(Clone, Copy)]
+pub struct KillerMoves {
+    pub one: ChessMove,
+    pub two: ChessMove,
+}
+
+impl KillerMoves {
+    #[inline]
+    fn store(&mut self, chess_move: ChessMove) {
+        if chess_move != self.one {
+            self.two = self.one;
+            self.one = chess_move;
+        }
+    }
+}
 
 #[derive(new)]
 pub struct SearchContext {
@@ -37,26 +53,40 @@ pub struct SearchContext {
     #[new(value = "false")]
     terminate_search: bool,
     #[new(value = "vec![]")]
-    killers: Vec<Option<ChessMove>>,
+    killers: Vec<KillerMoves>,
 }
 
 impl SearchContext {
     pub fn root_search(&mut self, max_depth: SearchDepth) -> SearchOutcome {
+        // TODO: order moves here with scores attached! (Hash moves gets good score, increase of alpha gets good score etc.)
         let mut move_vec = get_legal_moves_vector(&self.board);
         let mut best_move = move_vec[0];
         let mut score = -config::INFINITY;
 
-        self.killers = vec![None; (max_depth + MAX_EXTENSION_PLIES) as usize];
+        let dummy_move = ChessMove::new(Square::A1, Square::A1, None);
+
+        self.killers = vec![
+            KillerMoves {
+                one: dummy_move.clone(),
+                two: dummy_move.clone()
+            };
+            (max_depth + MAX_EXTENSION_PLIES) as usize
+        ];
 
         self.set_visited(self.board.get_hash());
 
         'iterative_deepening: for depth in self.start_depth..(max_depth + 1) {
             let mut current_best = best_move;
+
+            // TODO: Add aspiration windows
+
             let mut alpha = -config::INFINITY;
 
             move_vec.sort_by_key(|m| if best_move.eq(m) { 0 } else { 1 });
 
             for chess_move in &mut move_vec {
+                // TODO: only search first move with full window, later moves with zero window
+
                 let value = -self.search(
                     &self.board.make_move_new(*chess_move),
                     depth - 1,
@@ -78,6 +108,9 @@ impl SearchContext {
 
             score = alpha;
             best_move = current_best;
+
+            // TODO: report also the PV once implemented (Read from TTable)
+
             self.sender_channel
                 .send((score, best_move, depth))
                 .unwrap_or_default();
@@ -95,7 +128,7 @@ impl SearchContext {
         mut alpha: PositionScore,
         mut beta: PositionScore,
         mut plies_extended: SearchDepth,
-        ply: SearchDepth,
+        ply: usize,
     ) -> PositionScore {
         if self.terminate_search {
             return alpha;
@@ -149,7 +182,7 @@ impl SearchContext {
             hash_move = Some(table_entry.best_move);
         }
 
-        let movelist = MoveList::new(board, hash_move, self.killers[ply as usize]);
+        let movelist = MoveList::new(board, hash_move, self.killers[ply]);
 
         let mut score_bound = ScoreBound::UpperBound;
         let mut best_move = ChessMove::new(Square::A1, Square::A1, None);
@@ -157,6 +190,8 @@ impl SearchContext {
         self.set_visited(board.get_hash());
 
         for chess_move in movelist {
+            // TODO: only search first move with full window, later moves with zero window
+
             let mut value = -self.search(
                 &board.make_move_new(chess_move),
                 depth - 1,
@@ -178,7 +213,7 @@ impl SearchContext {
                 if alpha >= beta {
                     match board.piece_on(chess_move.get_dest()) {
                         Some(_) => {}
-                        None => self.killers[ply as usize] = Some(chess_move),
+                        None => self.killers[ply].store(chess_move),
                     }
                     score_bound = ScoreBound::LowerBound;
                     break;
@@ -264,6 +299,9 @@ impl SearchContext {
             iterable.set_iterator_mask(get_targets(board, piece));
 
             for chess_move in &mut iterable {
+                // let move_list = QuiescenceMoveList::new(board);
+
+                // for chess_move in move_list {
                 //for chess_move in movelist {
                 alpha = max(
                     alpha,
@@ -275,7 +313,6 @@ impl SearchContext {
                 }
             }
         }
-
         alpha
     }
 
