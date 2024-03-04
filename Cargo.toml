@@ -9,11 +9,16 @@ edition = "2021"
 chess = "3.2.0"
 derive-new = "0.5"
 log = "0.4.20"
+rand = "0.8.5"
 
 [dev-dependencies]
 criterion = { version = "0.4", features = ["html_reports"] }
 
 [[bench]]
 name = "chess_benchmark"
+harness = false
+
+[[bench]]
+name = "sort_benchmark"
 harness = false
 

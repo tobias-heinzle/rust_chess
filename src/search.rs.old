@@ -1,11 +1,9 @@
-use chess::{BitBoard, Board, BoardStatus, ChessMove, Color, MoveGen, Piece, Square, EMPTY};
+use chess::{BitBoard, Board, BoardStatus, ChessMove, MoveGen, Piece, Square, EMPTY};
 use derive_new::new;
 use std::cmp::max;
-use std::ops::Index;
-use std::rc::Rc;
 use std::sync::mpsc;
 
-use crate::config::{self, MAX_DEPTH, MAX_EXTENSION_PLIES};
+use crate::config::{self, MAX_EXTENSION_PLIES};
 use crate::eval::evaluate;
 use crate::movelist::MoveList;
 use crate::table::{ScoreBound, TableEntryData, TranspositionTable};
@@ -19,8 +17,6 @@ pub type SearchInfo = (PositionScore, ChessMove, SearchDepth);
 
 // TODO: instead of alpha, beta etc. pass an object that encapsulates a search state
 
-const MAX_HISTORY_VALUE: u16 = 65535 - (MAX_DEPTH as u16 * MAX_DEPTH as u16 + 1);
-
 #[derive(Clone, Copy)]
 pub struct KillerMoves {
     pub one: ChessMove,
@@ -33,71 +29,6 @@ impl KillerMoves {
         if chess_move != self.one {
             self.two = self.one;
             self.one = chess_move;
-        }
-    }
-}
-
-pub type Table64by64 = [[u16; 64]; 64];
-
-struct HistoryTables {
-    white: Table64by64,
-    black: Table64by64,
-}
-
-impl Index<Color> for HistoryTables {
-    type Output = Table64by64;
-    fn index(&self, color: Color) -> &Self::Output {
-        match color {
-            Color::White => &self.white,
-            Color::Black => &self.black,
-        }
-    }
-}
-
-impl HistoryTables {
-    fn new() -> HistoryTables {
-        HistoryTables {
-            white: [[0; 64]; 64],
-            black: [[0; 64]; 64],
-        }
-    }
-
-    fn increment(&mut self, chess_move: &ChessMove, color: Color, depth: SearchDepth) {
-        match color {
-            Color::White => {
-                self.white[chess_move.get_source().to_index()][chess_move.get_dest().to_index()] +=
-                    1;
-                // if self.white[chess_move.get_source().to_index()][chess_move.get_dest().to_index()]
-                //     >= MAX_HISTORY_VALUE
-                // {
-                //     self.divide_history_white();
-                // }
-            }
-            Color::Black => {
-                self.black[chess_move.get_source().to_index()][chess_move.get_dest().to_index()] +=
-                    1;
-                // if self.black[chess_move.get_source().to_index()][chess_move.get_dest().to_index()]
-                //     >= MAX_HISTORY_VALUE
-                // {
-                //     self.divide_history_black();
-                // }
-            }
-        }
-    }
-
-    fn divide_history_white(&mut self) {
-        for from_square in 0..64 {
-            for to_square in 0..64 {
-                self.white[from_square][to_square] >>= 1;
-            }
-        }
-    }
-
-    fn divide_history_black(&mut self) {
-        for from_square in 0..64 {
-            for to_square in 0..64 {
-                self.black[from_square][to_square] >>= 1;
-            }
         }
     }
 }
@@ -125,8 +56,6 @@ pub struct SearchContext {
     terminate_search: bool,
     #[new(value = "vec![]")]
     killers: Vec<KillerMoves>,
-    #[new(value = "[[0; 64]; 64]")] //"HistoryTables::new()")]
-    history_tables: Table64by64, // HistoryTables,
 }
 
 impl SearchContext {
@@ -135,15 +64,6 @@ impl SearchContext {
         let mut move_vec = get_legal_moves_vector(&self.board);
         let mut best_move = move_vec[0];
         let mut score = -config::INFINITY;
-
-        use rand::Rng;
-        let mut rng = rand::thread_rng();
-
-        for i in 0..64 {
-            for j in 0..64 {
-                self.history_tables[i][j] = rng.gen::<u16>()
-            }
-        }
 
         let dummy_move = ChessMove::new(Square::A1, Square::A1, None);
 
@@ -265,7 +185,7 @@ impl SearchContext {
             hash_move = Some(table_entry.best_move);
         }
 
-        let movelist = MoveList::new(board, hash_move, self.killers[ply], self.history_tables);
+        let movelist = MoveList::new(board, hash_move, self.killers[ply]);
 
         let mut score_bound = ScoreBound::UpperBound;
         let mut best_move = ChessMove::new(Square::A1, Square::A1, None);
@@ -298,15 +218,7 @@ impl SearchContext {
 
                     match board.piece_on(chess_move.get_dest()) {
                         Some(_) => {}
-                        None => {
-                            // if depth >= 2 {
-                            // self.history_tables
-                            //     .increment(&chess_move, board.side_to_move(), depth);
-                            // }
-                            // self.history_tables[chess_move.get_source().to_index()]
-                            //     [chess_move.get_dest().to_index()] += depth as u16;
-                            self.killers[ply].store(chess_move);
-                        }
+                        None => self.killers[ply].store(chess_move),
                     }
                     score_bound = ScoreBound::LowerBound;
                     break;
