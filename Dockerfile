@@ -21,7 +21,6 @@ RUN apt install -y software-properties-common
 RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt update
 RUN DEBIAN_FRONTEND=noninteractive apt install -y python3.12
-RUN apt install -y python3.12-distutils
 RUN apt install -y python3.12-venv
 RUN python3.12 -m ensurepip
 
